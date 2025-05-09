@@ -92,7 +92,7 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
                 end={item.path === "/"}
                 title={collapsed ? item.title : undefined}
               >
-                {item.icon}
+                <span className="text-foreground">{item.icon}</span>
                 {!collapsed && <span>{item.title}</span>}
               </NavLink>
             </li>

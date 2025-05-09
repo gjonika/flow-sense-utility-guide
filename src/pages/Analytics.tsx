@@ -37,88 +37,162 @@ import { useThemeStore, applyThemeColor } from "@/lib/theme";
 import { filterDataByYear, getYearOptions, hasData } from "@/lib/data-utils";
 import { PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+interface UtilityData {
+  month: string;
+  usage: number;
+  cost: number;
+  reading: string;
+}
+
+interface UtilityBreakdown {
+  name: string;
+  value: number;
+}
 
 const Analytics = () => {
   const [utilityType, setUtilityType] = useState("electricity");
   const [chartView, setChartView] = useState("usage");
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [hasReadings, setHasReadings] = useState(true); // Simulate having readings
+  const [hasReadings, setHasReadings] = useState(false);
+  const [utilityData, setUtilityData] = useState<{
+    electricity: UtilityData[];
+    water: UtilityData[];
+    gas: UtilityData[];
+    internet: UtilityData[];
+  }>({
+    electricity: [],
+    water: [],
+    gas: [],
+    internet: [],
+  });
+  const [utilityBreakdown, setUtilityBreakdown] = useState<UtilityBreakdown[]>([]);
+  
   const { getColor } = useThemeStore();
   const navigate = useNavigate();
   
   const yearOptions = getYearOptions();
 
-  // Apply theme on component mount
   useEffect(() => {
     applyThemeColor(getColor('default'));
-    
-    // Check if we have readings data (simulated)
-    // In a real app, you'd fetch this from your API or database
-    setHasReadings(true); // simulate having data
+    fetchReadingsData();
   }, [getColor]);
 
-  // Mock data for electricity usage
-  const electricityData = hasReadings ? [
-    { month: "Jan", usage: 95, cost: 68.4, reading: "1250 kWh" },
-    { month: "Feb", usage: 85, cost: 61.2, reading: "1335 kWh" },
-    { month: "Mar", usage: 78, cost: 56.16, reading: "1413 kWh" },
-    { month: "Apr", usage: 90, cost: 64.8, reading: "1503 kWh" },
-    { month: "May", usage: 102, cost: 73.44, reading: "1605 kWh" },
-    { month: "Jun", usage: 110, cost: 79.2, reading: "1715 kWh" },
-  ] : [];
+  useEffect(() => {
+    processReadingsData();
+  }, [selectedYear]);
 
-  // Mock data for water usage
-  const waterData = hasReadings ? [
-    { month: "Jan", usage: 52, cost: 34.84, reading: "320 m³" },
-    { month: "Feb", usage: 48, cost: 32.16, reading: "368 m³" },
-    { month: "Mar", usage: 50, cost: 33.5, reading: "418 m³" },
-    { month: "Apr", usage: 55, cost: 36.85, reading: "473 m³" },
-    { month: "May", usage: 60, cost: 40.2, reading: "533 m³" },
-    { month: "Jun", usage: 63, cost: 42.21, reading: "596 m³" },
-  ] : [];
+  const fetchReadingsData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('utility_entries')
+        .select('*')
+        .order('readingdate', { ascending: false });
+      
+      if (error) throw error;
+      
+      const hasEntries = Array.isArray(data) && data.length > 0;
+      setHasReadings(hasEntries);
+      
+      if (hasEntries) {
+        processReadingsData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching readings:', error);
+      setHasReadings(false);
+    }
+  };
 
-  // Mock data for gas usage
-  const gasData = hasReadings ? [
-    { month: "Jan", usage: 78, cost: 72.54, reading: "450 m³" },
-    { month: "Feb", usage: 82, cost: 76.26, reading: "532 m³" },
-    { month: "Mar", usage: 75, cost: 69.75, reading: "607 m³" },
-    { month: "Apr", usage: 68, cost: 63.24, reading: "675 m³" },
-    { month: "May", usage: 65, cost: 60.45, reading: "740 m³" },
-    { month: "Jun", usage: 60, cost: 55.8, reading: "800 m³" },
-  ] : [];
+  const processReadingsData = (data?: any[]) => {
+    if (!data && !hasReadings) return;
+    
+    // Process utility data by type
+    const processedData = transformReadingsByType(data);
+    setUtilityData(processedData);
+    
+    // Process breakdown data
+    const breakdown = calculateUtilityBreakdown(data);
+    setUtilityBreakdown(breakdown);
+  };
 
-  // Mock data for internet usage
-  const internetData = hasReadings ? [
-    { month: "Jan", usage: 50, cost: 45, reading: "50 GB" },
-    { month: "Feb", usage: 50, cost: 45, reading: "50 GB" },
-    { month: "Mar", usage: 50, cost: 45, reading: "50 GB" },
-    { month: "Apr", usage: 50, cost: 45, reading: "50 GB" },
-    { month: "May", usage: 50, cost: 45, reading: "50 GB" },
-    { month: "Jun", usage: 50, cost: 45, reading: "50 GB" },
-  ] : [];
+  const transformReadingsByType = (data?: any[]) => {
+    if (!data || !data.length) return {
+      electricity: [],
+      water: [],
+      gas: [],
+      internet: [],
+    };
+    
+    // Filter by selected year
+    const yearData = filterDataByYear(data, selectedYear);
+    if (!yearData.length) return {
+      electricity: [],
+      water: [],
+      gas: [],
+      internet: [],
+    };
+    
+    const result: Record<string, UtilityData[]> = {
+      electricity: [],
+      water: [],
+      gas: [],
+      internet: [],
+    };
+    
+    // Group by utility type and month
+    const utilityTypes = ['electricity', 'water', 'gas', 'internet'];
+    
+    utilityTypes.forEach(type => {
+      const entries = yearData.filter(d => d.utilitytype === type);
+      if (!entries.length) return;
+      
+      // Sort by date
+      entries.sort((a, b) => new Date(a.readingdate).getTime() - new Date(b.readingdate).getTime());
+      
+      // Convert to months
+      const monthData: UtilityData[] = entries.map(entry => {
+        const date = new Date(entry.readingdate);
+        return {
+          month: date.toLocaleString('default', { month: 'short' }),
+          usage: parseFloat(entry.reading || '0'),
+          cost: parseFloat(entry.amount || '0'),
+          reading: `${entry.reading || '0'} ${entry.unit || ''}`
+        };
+      });
+      
+      result[type] = monthData;
+    });
+    
+    return result;
+  };
 
-  // Mock data for overall utility breakdown
-  const utilityBreakdown = hasReadings ? [
-    { name: "Electricity", value: 403.2 },
-    { name: "Water", value: 219.76 },
-    { name: "Gas", value: 398.04 },
-    { name: "Internet", value: 270 },
-  ] : [];
+  const calculateUtilityBreakdown = (data?: any[]) => {
+    if (!data || !data.length) return [];
+    
+    // Filter by selected year
+    const yearData = filterDataByYear(data, selectedYear);
+    if (!yearData.length) return [];
+    
+    // Sum costs by utility type
+    const totalsByType: Record<string, number> = {};
+    
+    yearData.forEach(entry => {
+      const type = entry.utilitytype;
+      if (!totalsByType[type]) totalsByType[type] = 0;
+      totalsByType[type] += parseFloat(entry.amount || '0');
+    });
+    
+    // Convert to array format for the chart
+    return Object.entries(totalsByType).map(([name, value]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      value: parseFloat(value.toFixed(2))
+    }));
+  };
 
   // Determine which data set to use based on utility type
   const getUtilityData = () => {
-    switch (utilityType) {
-      case "electricity":
-        return electricityData;
-      case "water":
-        return waterData;
-      case "gas":
-        return gasData;
-      case "internet":
-        return internetData;
-      default:
-        return electricityData;
-    }
+    return utilityData[utilityType as keyof typeof utilityData] || [];
   };
 
   // Get utility color based on type or theme
@@ -136,6 +210,10 @@ const Analytics = () => {
         return getColor("default") || "#3b82f6";
     }
   };
+
+  const currentUtilityData = getUtilityData();
+  const hasCurrentUtilityData = currentUtilityData && currentUtilityData.length > 0;
+  const hasBreakdownData = utilityBreakdown && utilityBreakdown.length > 0;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -163,7 +241,7 @@ const Analytics = () => {
         </Select>
       </div>
 
-      {hasReadings ? (
+      {hasReadings && hasCurrentUtilityData ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Chart Card */}
           <Card className="lg:col-span-2">
@@ -181,10 +259,13 @@ const Analytics = () => {
                       <SelectValue placeholder="Select utility" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="electricity">Electricity</SelectItem>
-                      <SelectItem value="water">Water</SelectItem>
-                      <SelectItem value="gas">Gas</SelectItem>
-                      <SelectItem value="internet">Internet</SelectItem>
+                      {Object.keys(utilityData).map(type => (
+                        utilityData[type as keyof typeof utilityData].length > 0 && (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </SelectItem>
+                        )
+                      ))}
                     </SelectContent>
                   </Select>
                   <Tabs value={chartView} onValueChange={setChartView}>
@@ -199,7 +280,7 @@ const Analytics = () => {
             <CardContent>
               <div className="h-[300px] mt-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={getUtilityData()}>
+                  <BarChart data={currentUtilityData}>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                     <XAxis dataKey="month" />
                     <YAxis />
@@ -230,77 +311,81 @@ const Analytics = () => {
           </Card>
 
           {/* Cost Breakdown Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Cost Breakdown</CardTitle>
-              <CardDescription>
-                Total expenditure by utility for {selectedYear}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={utilityBreakdown}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      name="Cost ($)"
-                      stroke={getColor("default") || "#10b981"}
-                      activeDot={{ r: 8 }}
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-4 space-y-3">
-                <p className="text-sm text-muted-foreground">Total cost by utility:</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: getColor("electricity") || "#3b82f6" }}></span>
-                    <span className="text-sm">Electricity: $403.20</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: getColor("water") || "#0ea5e9" }}></span>
-                    <span className="text-sm">Water: $219.76</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: getColor("gas") || "#ef4444" }}></span>
-                    <span className="text-sm">Gas: $398.04</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: getColor("internet") || "#8b5cf6" }}></span>
-                    <span className="text-sm">Internet: $270.00</span>
+          {hasBreakdownData && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Cost Breakdown</CardTitle>
+                <CardDescription>
+                  Total expenditure by utility for {selectedYear}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={utilityBreakdown}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        name="Cost ($)"
+                        stroke={getColor("default") || "#10b981"}
+                        activeDot={{ r: 8 }}
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 space-y-3">
+                  <p className="text-sm text-muted-foreground">Total cost by utility:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {utilityBreakdown.map(item => (
+                      <div key={item.name} className="flex items-center gap-2">
+                        <span 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ 
+                            backgroundColor: getColor(item.name.toLowerCase()) || 
+                              (item.name.toLowerCase() === "electricity" ? "#3b82f6" : 
+                              item.name.toLowerCase() === "water" ? "#0ea5e9" : 
+                              item.name.toLowerCase() === "gas" ? "#ef4444" : "#8b5cf6")
+                          }}
+                        ></span>
+                        <span className="text-sm">{item.name}: ${item.value.toFixed(2)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       ) : (
         <Card>
           <CardHeader>
             <CardTitle>No Analytics Data</CardTitle>
             <CardDescription>
-              Add readings to view analytics and insights
+              {hasReadings 
+                ? `No data available for ${selectedYear}. Try selecting a different year or add more readings.` 
+                : "Add readings to view analytics and insights"}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center py-10">
             <div className="text-center mb-6">
               <p className="text-muted-foreground mb-4">
-                There is no data to analyze. Add readings to start tracking your utility usage and costs.
+                {hasReadings 
+                  ? `There is no data to analyze for ${selectedYear}. Try selecting a different year or add more readings.` 
+                  : "There is no data to analyze. Add readings to start tracking your utility usage and costs."}
               </p>
               <Button 
                 onClick={() => navigate("/add-reading")}

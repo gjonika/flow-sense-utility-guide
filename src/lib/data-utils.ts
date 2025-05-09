@@ -1,6 +1,6 @@
 
 // Filter data by year
-export const filterDataByYear = <T extends { date?: string, readingdate?: string }>(
+export const filterDataByYear = <T extends { date?: string, readingdate?: string, month?: string }>(
   data: T[],
   year?: number
 ): T[] => {
@@ -8,7 +8,10 @@ export const filterDataByYear = <T extends { date?: string, readingdate?: string
   
   return data.filter((item) => {
     const dateStr = item.date || item.readingdate;
-    if (!dateStr) return false;
+    if (!dateStr) {
+      // For mock data with just month fields, we'll assume it's in the selected year
+      return !!item.month;
+    }
     
     try {
       const itemYear = new Date(dateStr).getFullYear();

@@ -11,13 +11,24 @@ import { PlusCircle } from "lucide-react";
 import { useThemeStore, applyThemeColor } from "@/lib/theme";
 import { filterDataByYear, getYearOptions, hasData } from "@/lib/data-utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+
+interface UtilityReading {
+  utilitytype: string;
+  reading: number;
+  unit: string;
+  month?: string;
+  readingdate?: string;
+}
 
 const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { getColor } = useThemeStore();
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [hasReadings, setHasReadings] = useState<boolean>(true); // Simulate having readings
+  const [hasReadings, setHasReadings] = useState<boolean>(false);
+  const [monthlyData, setMonthlyData] = useState<any[]>([]);
+  const [utilityCards, setUtilityCards] = useState<any[]>([]);
   const yearOptions = getYearOptions();
 
   useEffect(() => {
@@ -30,52 +41,126 @@ const Dashboard = () => {
       description: "Track and analyze your utility usage over time.",
     });
 
-    // Check if we have readings data (simulated)
-    // In a real app, you'd fetch this from your API or database
-    setHasReadings(true); // simulate having data
+    // Fetch readings data
+    fetchReadingsData();
   }, [toast, getColor]);
 
-  // Data for last 6 months - normally would come from API
-  // In a real app, you'd filter this based on the selected year
-  const monthlyData = hasReadings ? [
-    { month: "Jan", electricity: 95, water: 52, gas: 78, internet: 50 },
-    { month: "Feb", electricity: 85, water: 48, gas: 82, internet: 50 },
-    { month: "Mar", electricity: 78, water: 50, gas: 75, internet: 50 },
-    { month: "Apr", electricity: 90, water: 55, gas: 68, internet: 50 },
-    { month: "May", electricity: 102, water: 60, gas: 65, internet: 50 },
-    { month: "Jun", electricity: 110, water: 63, gas: 60, internet: 50 },
-  ] : [];
+  useEffect(() => {
+    // Process data when year changes
+    processReadingsData();
+  }, [selectedYear]);
 
-  const utilityCards = hasReadings ? [
-    {
-      title: "Electricity",
-      value: "110 kWh",
-      change: "+8%",
-      type: "increase",
-      color: "utility-electricity"
-    },
-    {
-      title: "Water",
-      value: "63 m³",
-      change: "+5%",
-      type: "increase",
-      color: "utility-water"
-    },
-    {
-      title: "Gas",
-      value: "60 m³",
-      change: "-7.7%",
-      type: "decrease",
-      color: "utility-gas"
-    },
-    {
-      title: "Internet",
-      value: "50 GB",
-      change: "0%",
-      type: "neutral",
-      color: "utility-internet"
-    },
-  ] : [];
+  const fetchReadingsData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('utility_entries')
+        .select('*')
+        .order('readingdate', { ascending: false });
+      
+      if (error) throw error;
+      
+      const hasEntries = Array.isArray(data) && data.length > 0;
+      setHasReadings(hasEntries);
+      
+      if (hasEntries) {
+        processReadingsData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching readings:', error);
+      setHasReadings(false);
+    }
+  };
+
+  const processReadingsData = (data?: any[]) => {
+    if (!data && !hasReadings) return;
+    
+    // Generate monthly data for charts
+    const processedMonthlyData = transformReadingsToMonthly(data);
+    setMonthlyData(processedMonthlyData);
+    
+    // Generate utility cards data
+    const latestReadings = getLatestReadings(data);
+    setUtilityCards(latestReadings);
+  };
+
+  // Transform readings into monthly format for charts
+  const transformReadingsToMonthly = (data?: any[]) => {
+    if (!data || !data.length) return [];
+    
+    // Filter by selected year
+    const yearData = filterDataByYear(data, selectedYear);
+    if (!yearData.length) return [];
+    
+    // Group by month
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyAggregated = months.map(month => {
+      const monthEntry: Record<string, any> = { month };
+      
+      // For each utility type, find readings from that month
+      const utilityTypes = ['electricity', 'water', 'gas', 'internet'];
+      utilityTypes.forEach(type => {
+        const entry = yearData.find(d => {
+          const date = new Date(d.readingdate);
+          return d.utilitytype === type && date.toLocaleString('default', { month: 'short' }) === month;
+        });
+        
+        monthlyAggregated[type] = entry ? parseFloat(entry.reading) : null;
+      });
+      
+      return monthEntry;
+    });
+    
+    // Filter out months with no data
+    return monthlyAggregated.filter(m => 
+      m.electricity !== null || m.water !== null || m.gas !== null || m.internet !== null
+    );
+  };
+
+  // Get latest reading for each utility type
+  const getLatestReadings = (data?: any[]) => {
+    if (!data || !data.length) return [];
+    
+    // Filter by selected year
+    const yearData = filterDataByYear(data, selectedYear);
+    if (!yearData.length) return [];
+    
+    const utilityTypes = ['electricity', 'water', 'gas', 'internet'];
+    const latestByType = utilityTypes.map(type => {
+      const entriesOfType = yearData.filter(d => d.utilitytype === type);
+      if (!entriesOfType.length) return null;
+      
+      // Sort by date descending
+      entriesOfType.sort((a, b) => new Date(b.readingdate).getTime() - new Date(a.readingdate).getTime());
+      
+      const latest = entriesOfType[0];
+      const previous = entriesOfType[1];
+      
+      // Calculate percentage change
+      let change = "0%";
+      let changeType = "neutral";
+      
+      if (previous && latest.reading && previous.reading) {
+        const latestVal = parseFloat(latest.reading);
+        const previousVal = parseFloat(previous.reading);
+        
+        if (previousVal > 0) {
+          const percentChange = ((latestVal - previousVal) / previousVal) * 100;
+          change = `${percentChange > 0 ? '+' : ''}${percentChange.toFixed(1)}%`;
+          changeType = percentChange > 0 ? "increase" : percentChange < 0 ? "decrease" : "neutral";
+        }
+      }
+      
+      return {
+        title: type.charAt(0).toUpperCase() + type.slice(1),
+        value: `${latest.reading} ${latest.unit || ''}`,
+        change,
+        type: changeType,
+        color: `utility-${type}`
+      };
+    }).filter(Boolean);
+    
+    return latestByType;
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -112,7 +197,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {hasReadings ? (
+      {hasReadings && utilityCards.length > 0 && monthlyData.length > 0 ? (
         <>
           {/* Utility Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -130,17 +215,19 @@ const Dashboard = () => {
 
           {/* Charts and Tables */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Consumption Trends</CardTitle>
-                <CardDescription>
-                  Monthly utility consumption for {selectedYear}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UtilityChart data={monthlyData} />
-              </CardContent>
-            </Card>
+            {monthlyData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Consumption Trends</CardTitle>
+                  <CardDescription>
+                    Monthly utility consumption for {selectedYear}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <UtilityChart data={monthlyData} />
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>
@@ -166,14 +253,16 @@ const Dashboard = () => {
           <CardContent className="flex flex-col items-center py-10">
             <div className="text-center mb-6">
               <p className="text-muted-foreground mb-4">
-                You haven't added any readings yet. Add your first reading to start tracking your utility usage.
+                {hasReadings 
+                  ? `No readings found for ${selectedYear}. Try selecting a different year or add new readings.` 
+                  : "You haven't added any readings yet. Add your first reading to start tracking your utility usage."}
               </p>
               <Button 
                 onClick={() => navigate("/add-reading")}
                 className="gap-2"
               >
                 <PlusCircle className="h-4 w-4" />
-                <span>Add Your First Reading</span>
+                <span>{hasReadings ? "Add New Reading" : "Add Your First Reading"}</span>
               </Button>
             </div>
           </CardContent>
