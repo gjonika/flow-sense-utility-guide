@@ -29,15 +29,15 @@ import { File, Upload, Trash2 } from "lucide-react";
 
 type Reading = {
   id: string;
-  readingdate: Date;
+  readingdate: Date | string;  // Updated to accept both Date and string
   utilitytype: string;
   supplier: string;
   reading?: string | number;
   unit?: string;
   amount: number;
   notes?: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Date | string;  // Also updated for consistency
+  updated_at: Date | string;  // Also updated for consistency
 };
 
 const History = () => {
@@ -263,7 +263,7 @@ const History = () => {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
+      </Dialog>
     </div>
   );
 };
