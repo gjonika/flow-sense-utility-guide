@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -18,95 +18,139 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { UploadCSV } from "@/components/UploadCSV";
+import { File, Upload, Trash2 } from "lucide-react";
 
-// Mock data
-const allReadings = [
-  {
-    id: "r1",
-    date: new Date(2023, 5, 15), // June 15, 2023
-    utility: "Electricity",
-    reading: "110 kWh",
-    cost: "$78.50",
-    notes: "Summer usage higher than normal"
-  },
-  {
-    id: "r2",
-    date: new Date(2023, 5, 10), // June 10, 2023
-    utility: "Water",
-    reading: "63 m³",
-    cost: "$42.25",
-    notes: ""
-  },
-  {
-    id: "r3",
-    date: new Date(2023, 5, 8), // June 8, 2023
-    utility: "Gas",
-    reading: "60 m³",
-    cost: "$55.60",
-    notes: "Reduced heating usage"
-  },
-  {
-    id: "r4",
-    date: new Date(2023, 5, 5), // June 5, 2023
-    utility: "Internet",
-    reading: "50 GB",
-    cost: "$45.00",
-    notes: ""
-  },
-  {
-    id: "r5",
-    date: new Date(2023, 4, 15), // May 15, 2023
-    utility: "Electricity",
-    reading: "102 kWh",
-    cost: "$73.25",
-    notes: ""
-  },
-  {
-    id: "r6",
-    date: new Date(2023, 4, 10), // May 10, 2023
-    utility: "Water",
-    reading: "60 m³",
-    cost: "$39.75",
-    notes: ""
-  },
-  {
-    id: "r7",
-    date: new Date(2023, 4, 8), // May 8, 2023
-    utility: "Gas",
-    reading: "65 m³",
-    cost: "$60.40",
-    notes: "Slightly higher than expected"
-  },
-  {
-    id: "r8",
-    date: new Date(2023, 4, 5), // May 5, 2023
-    utility: "Internet",
-    reading: "50 GB",
-    cost: "$45.00",
-    notes: ""
-  }
-];
+type Reading = {
+  id: string;
+  readingdate: Date;
+  utilitytype: string;
+  supplier: string;
+  reading?: string | number;
+  unit?: string;
+  amount: number;
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
+};
 
 const History = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [readings, setReadings] = useState<Reading[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const { toast } = useToast();
 
-  const filteredReadings = allReadings.filter((reading) => {
-    const matchesSearch = reading.notes.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reading.utility.toLowerCase().includes(searchTerm.toLowerCase());
+  // Fetch readings from Supabase
+  const fetchReadings = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('utility_entries')
+        .select('*')
+        .order('readingdate', { ascending: false });
+      
+      if (error) throw error;
+      
+      setReadings(data || []);
+    } catch (error) {
+      console.error('Error fetching readings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load utility readings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReadings();
+  }, []);
+
+  // Filter readings based on search term and type filter
+  const filteredReadings = readings.filter((reading) => {
+    const matchesSearch = 
+      (reading.notes?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      reading.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reading.utilitytype.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesType = filterType === "all" || reading.utility.toLowerCase() === filterType.toLowerCase();
+    const matchesType = filterType === "all" || reading.utilitytype.toLowerCase() === filterType.toLowerCase();
     
     return matchesSearch && matchesType;
   });
 
+  // Handle successful import
+  const handleImportSuccess = () => {
+    setImportDialogOpen(false);
+    fetchReadings();
+    toast({
+      title: "Success",
+      description: "Entries imported successfully",
+    });
+  };
+
+  // Handle delete all entries
+  const handleDeleteAll = async () => {
+    try {
+      const { error } = await supabase
+        .from('utility_entries')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all entries
+      
+      if (error) throw error;
+      
+      setDeleteConfirmOpen(false);
+      fetchReadings();
+      toast({
+        title: "Success",
+        description: "All entries have been deleted",
+      });
+    } catch (error) {
+      console.error('Error deleting entries:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete entries",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Reading History</h1>
-        <p className="text-muted-foreground">
-          View and filter all your past utility readings
-        </p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Reading History</h1>
+          <p className="text-muted-foreground">
+            View and filter all your past utility readings
+          </p>
+        </div>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setDeleteConfirmOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete All
+          </Button>
+          <Button 
+            onClick={() => setImportDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            Import CSV
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -150,25 +194,35 @@ const History = () => {
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Type</TableHead>
+              <TableHead>Supplier</TableHead>
               <TableHead>Reading</TableHead>
-              <TableHead>Cost</TableHead>
+              <TableHead>Unit</TableHead>
+              <TableHead>Amount</TableHead>
               <TableHead className="hidden md:table-cell">Notes</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredReadings.length === 0 ? (
+            {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  Loading readings...
+                </TableCell>
+              </TableRow>
+            ) : filteredReadings.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No readings match the current filters
                 </TableCell>
               </TableRow>
             ) : (
               filteredReadings.map((reading) => (
                 <TableRow key={reading.id}>
-                  <TableCell>{formatDate(reading.date)}</TableCell>
-                  <TableCell>{reading.utility}</TableCell>
-                  <TableCell>{reading.reading}</TableCell>
-                  <TableCell>{reading.cost}</TableCell>
+                  <TableCell>{formatDate(new Date(reading.readingdate))}</TableCell>
+                  <TableCell>{reading.utilitytype}</TableCell>
+                  <TableCell>{reading.supplier}</TableCell>
+                  <TableCell>{reading.reading || '-'}</TableCell>
+                  <TableCell>{reading.unit || '-'}</TableCell>
+                  <TableCell>${reading.amount.toFixed(2)}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     {reading.notes || <span className="text-muted-foreground">-</span>}
                   </TableCell>
@@ -180,8 +234,36 @@ const History = () => {
       </div>
 
       <div className="text-right text-sm text-muted-foreground">
-        Showing {filteredReadings.length} of {allReadings.length} readings
+        Showing {filteredReadings.length} of {readings.length} readings
       </div>
+
+      {/* Import Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="sm:max-w-[725px]">
+          <DialogHeader>
+            <DialogTitle>Import Utility Entries</DialogTitle>
+          </DialogHeader>
+          <UploadCSV onSuccess={handleImportSuccess} onCancel={() => setImportDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete all your utility readings data from the server.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAll} className="bg-destructive text-destructive-foreground">
+              Yes, delete all
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
