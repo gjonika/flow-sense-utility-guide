@@ -8,40 +8,54 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data for recent readings - would normally come from API
-const recentReadings = [
-  {
-    id: "r1",
-    date: new Date(2023, 5, 15), // June 15, 2023
-    utility: "Electricity",
-    reading: "110 kWh",
-    cost: "$78.50",
-  },
-  {
-    id: "r2",
-    date: new Date(2023, 5, 10), // June 10, 2023
-    utility: "Water",
-    reading: "63 m³",
-    cost: "$42.25",
-  },
-  {
-    id: "r3",
-    date: new Date(2023, 5, 8), // June 8, 2023
-    utility: "Gas",
-    reading: "60 m³",
-    cost: "$55.60",
-  },
-  {
-    id: "r4",
-    date: new Date(2023, 5, 5), // June 5, 2023
-    utility: "Internet",
-    reading: "50 GB",
-    cost: "$45.00",
-  },
-];
+interface ReadingEntry {
+  id: string;
+  readingdate: string;
+  utilitytype: string;
+  reading: number | null;
+  unit: string | null;
+  amount: number;
+}
 
 export function RecentReadingsTable() {
+  const [readings, setReadings] = useState<ReadingEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecentReadings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('utility_entries')
+          .select('id, readingdate, utilitytype, reading, unit, amount')
+          .order('readingdate', { ascending: false })
+          .limit(5);
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setReadings(data);
+        }
+      } catch (error) {
+        console.error('Error fetching recent readings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRecentReadings();
+  }, []);
+
+  if (loading) {
+    return <p className="text-sm text-muted-foreground p-4 text-center">Loading recent readings...</p>;
+  }
+
+  if (readings.length === 0) {
+    return <p className="text-sm text-muted-foreground p-4 text-center">No recent readings found.</p>;
+  }
+
   return (
     <div className="border rounded-md">
       <Table>
@@ -54,12 +68,12 @@ export function RecentReadingsTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {recentReadings.map((reading) => (
+          {readings.map((reading) => (
             <TableRow key={reading.id}>
-              <TableCell>{formatDate(reading.date)}</TableCell>
-              <TableCell>{reading.utility}</TableCell>
-              <TableCell>{reading.reading}</TableCell>
-              <TableCell>{reading.cost}</TableCell>
+              <TableCell>{formatDate(new Date(reading.readingdate))}</TableCell>
+              <TableCell>{reading.utilitytype.charAt(0).toUpperCase() + reading.utilitytype.slice(1)}</TableCell>
+              <TableCell>{reading.reading !== null ? `${reading.reading} ${reading.unit || ''}` : '-'}</TableCell>
+              <TableCell>${reading.amount.toFixed(2)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

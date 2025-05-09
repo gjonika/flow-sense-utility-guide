@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [utilityCards, setUtilityCards] = useState<any[]>([]);
   const yearOptions = getYearOptions();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // Apply default theme
@@ -47,10 +48,13 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Process data when year changes
-    processReadingsData();
+    if (hasReadings) {
+      fetchReadingsData();
+    }
   }, [selectedYear]);
 
   const fetchReadingsData = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('utility_entries')
@@ -64,15 +68,22 @@ const Dashboard = () => {
       
       if (hasEntries) {
         processReadingsData(data);
+      } else {
+        setMonthlyData([]);
+        setUtilityCards([]);
       }
     } catch (error) {
       console.error('Error fetching readings:', error);
       setHasReadings(false);
+      setMonthlyData([]);
+      setUtilityCards([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const processReadingsData = (data?: any[]) => {
-    if (!data && !hasReadings) return;
+  const processReadingsData = (data: any[]) => {
+    if (!data) return;
     
     // Generate monthly data for charts
     const processedMonthlyData = transformReadingsToMonthly(data);
@@ -84,7 +95,7 @@ const Dashboard = () => {
   };
 
   // Transform readings into monthly format for charts
-  const transformReadingsToMonthly = (data?: any[]) => {
+  const transformReadingsToMonthly = (data: any[]) => {
     if (!data || !data.length) return [];
     
     // Filter by selected year
@@ -100,11 +111,12 @@ const Dashboard = () => {
       const utilityTypes = ['electricity', 'water', 'gas', 'internet'];
       utilityTypes.forEach(type => {
         const entry = yearData.find(d => {
+          if (!d.readingdate) return false;
           const date = new Date(d.readingdate);
           return d.utilitytype === type && date.toLocaleString('default', { month: 'short' }) === month;
         });
         
-        monthlyAggregated[type] = entry ? parseFloat(entry.reading) : null;
+        monthEntry[type] = entry ? parseFloat(entry.reading) : null;
       });
       
       return monthEntry;
@@ -117,7 +129,7 @@ const Dashboard = () => {
   };
 
   // Get latest reading for each utility type
-  const getLatestReadings = (data?: any[]) => {
+  const getLatestReadings = (data: any[]) => {
     if (!data || !data.length) return [];
     
     // Filter by selected year
@@ -130,7 +142,10 @@ const Dashboard = () => {
       if (!entriesOfType.length) return null;
       
       // Sort by date descending
-      entriesOfType.sort((a, b) => new Date(b.readingdate).getTime() - new Date(a.readingdate).getTime());
+      entriesOfType.sort((a, b) => {
+        if (!a.readingdate || !b.readingdate) return 0;
+        return new Date(b.readingdate).getTime() - new Date(a.readingdate).getTime();
+      });
       
       const latest = entriesOfType[0];
       const previous = entriesOfType[1];
@@ -162,6 +177,10 @@ const Dashboard = () => {
     return latestByType;
   };
 
+  const handleAddReading = () => {
+    navigate("/add-reading");
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -172,38 +191,46 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Select 
-            value={selectedYear.toString()} 
-            onValueChange={(value) => setSelectedYear(parseInt(value))}
-          >
-            <SelectTrigger className="w-24">
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
-            <SelectContent>
-              {yearOptions.map((year) => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {hasReadings && (
+            <Select 
+              value={selectedYear.toString()} 
+              onValueChange={(value) => setSelectedYear(parseInt(value))}
+            >
+              <SelectTrigger className="w-24">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button 
-            onClick={() => navigate("/add-reading")}
+            onClick={handleAddReading}
             className="gap-2"
           >
             <PlusCircle className="h-4 w-4" />
-            <span>Add Reading</span>
+            <span>{hasReadings ? "Add New Reading" : "Add Reading"}</span>
           </Button>
         </div>
       </div>
 
-      {hasReadings && utilityCards.length > 0 && monthlyData.length > 0 ? (
+      {isLoading ? (
+        <Card>
+          <CardContent className="flex justify-center items-center p-12">
+            <p>Loading...</p>
+          </CardContent>
+        </Card>
+      ) : hasReadings && utilityCards.length > 0 && monthlyData.length > 0 ? (
         <>
           {/* Utility Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {utilityCards.map((card) => (
+            {utilityCards.map((card, index) => (
               <UtilityCard
-                key={card.title}
+                key={`${card.title}-${index}`}
                 title={card.title}
                 value={card.value}
                 change={card.change}
@@ -258,7 +285,7 @@ const Dashboard = () => {
                   : "You haven't added any readings yet. Add your first reading to start tracking your utility usage."}
               </p>
               <Button 
-                onClick={() => navigate("/add-reading")}
+                onClick={handleAddReading}
                 className="gap-2"
               >
                 <PlusCircle className="h-4 w-4" />
