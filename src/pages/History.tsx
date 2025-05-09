@@ -20,12 +20,10 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { UploadCSV } from "@/components/UploadCSV";
 import { File, Upload, Trash2 } from "lucide-react";
+import { UploadCSV } from "@/components/UploadCSV";
 
 type Reading = {
   id: string;
@@ -263,7 +261,7 @@ const History = () => {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </Dialog>
+      </AlertDialog>
     </div>
   );
 };
