@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -43,6 +44,7 @@ const Analytics = () => {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [hasReadings, setHasReadings] = useState(true); // Simulate having readings
   const { getColor } = useThemeStore();
+  const navigate = useNavigate();
   
   const yearOptions = getYearOptions();
 
