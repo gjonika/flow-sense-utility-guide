@@ -26,7 +26,7 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
+					DEFAULT: 'var(--theme-color, hsl(var(--primary)))',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
@@ -54,10 +54,10 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				utility: {
-					electricity: '#3b82f6', // blue-500
-					water: '#0ea5e9', // sky-500
-					gas: '#ef4444', // red-500
-					internet: '#8b5cf6', // violet-500
+					electricity: 'var(--theme-color, #3b82f6)',
+					water: 'var(--theme-color, #0ea5e9)',
+					gas: 'var(--theme-color, #ef4444)',
+					internet: 'var(--theme-color, #8b5cf6)',
 				}
 			},
 			borderRadius: {

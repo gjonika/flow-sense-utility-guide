@@ -1,19 +1,42 @@
 
 import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ColorPicker } from "@/components/ColorPicker";
 import { 
   Home, 
   PlusCircle, 
   History, 
   BarChart3, 
-  Settings
+  Settings,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface SidebarProps {
   closeMobileSidebar: () => void;
 }
 
 const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
+  const [collapsed, setCollapsed] = useState(false);
+  
+  // Check if sidebar was collapsed in previous session
+  useEffect(() => {
+    const savedCollapsed = localStorage.getItem("sidebar-collapsed");
+    if (savedCollapsed) {
+      setCollapsed(savedCollapsed === "true");
+    }
+  }, []);
+
+  // Save sidebar state when it changes
+  useEffect(() => {
+    localStorage.setItem("sidebar-collapsed", String(collapsed));
+  }, [collapsed]);
+
+  const toggleSidebar = () => {
+    setCollapsed(!collapsed);
+  };
+
   const navItems = [
     { title: "Dashboard", path: "/", icon: <Home className="h-5 w-5" /> },
     { title: "Add Reading", path: "/add-reading", icon: <PlusCircle className="h-5 w-5" /> },
@@ -23,13 +46,32 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
   ];
 
   return (
-    <div className="h-full bg-card border-r flex flex-col">
+    <div className={`h-full bg-card border-r flex flex-col relative transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
+      {/* Toggle button */}
+      <Button
+        variant="outline"
+        size="icon"
+        className="absolute -right-3 top-20 h-6 w-6 rounded-full border bg-background shadow-md z-10"
+        onClick={toggleSidebar}
+      >
+        {collapsed ? (
+          <ChevronRight className="h-3 w-3" />
+        ) : (
+          <ChevronLeft className="h-3 w-3" />
+        )}
+      </Button>
+
       {/* App Logo/Title */}
-      <div className="p-6 border-b">
-        <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
+      <div className={`p-6 border-b flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+        <h1 className={`text-2xl font-bold text-primary flex items-center gap-2 ${collapsed ? 'sr-only' : ''}`}>
           <span className="w-2 h-6 bg-primary rounded-sm animate-pulse-light"></span>
           UtilityFlow
         </h1>
+        {collapsed ? (
+          <span className="w-2 h-6 bg-primary rounded-sm animate-pulse-light"></span>
+        ) : (
+          <ColorPicker />
+        )}
       </div>
 
       {/* Navigation Links */}
@@ -45,12 +87,13 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
                   ${isActive 
                     ? 'bg-primary text-primary-foreground font-medium' 
                     : 'hover:bg-accent hover:text-accent-foreground'
-                  }`
+                  } ${collapsed ? 'justify-center' : ''}`
                 }
                 end={item.path === "/"}
+                title={collapsed ? item.title : undefined}
               >
                 {item.icon}
-                <span>{item.title}</span>
+                {!collapsed && <span>{item.title}</span>}
               </NavLink>
             </li>
           ))}
@@ -59,14 +102,16 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
 
       {/* User Info */}
       <div className="p-4 border-t mt-auto">
-        <div className="flex items-center gap-3 px-4 py-2">
+        <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-4 py-2'}`}>
           <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold">
             U
           </div>
-          <div>
-            <p className="text-sm font-medium">User</p>
-            <p className="text-xs text-muted-foreground">user@example.com</p>
-          </div>
+          {!collapsed && (
+            <div>
+              <p className="text-sm font-medium">User</p>
+              <p className="text-xs text-muted-foreground">user@example.com</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
