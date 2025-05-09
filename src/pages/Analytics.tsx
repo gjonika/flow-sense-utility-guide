@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -116,29 +115,24 @@ const Analytics = () => {
     setUtilityBreakdown(breakdown);
   };
 
-  const transformReadingsByType = (data?: any[]) => {
-    if (!data || !data.length) return {
-      electricity: [],
-      water: [],
-      gas: [],
-      internet: [],
+  const transformReadingsByType = (data?: any[]): {
+    electricity: UtilityData[];
+    water: UtilityData[];
+    gas: UtilityData[];
+    internet: UtilityData[];
+  } => {
+    const result = {
+      electricity: [] as UtilityData[],
+      water: [] as UtilityData[],
+      gas: [] as UtilityData[],
+      internet: [] as UtilityData[],
     };
+    
+    if (!data || !data.length) return result;
     
     // Filter by selected year
     const yearData = filterDataByYear(data, selectedYear);
-    if (!yearData.length) return {
-      electricity: [],
-      water: [],
-      gas: [],
-      internet: [],
-    };
-    
-    const result: Record<string, UtilityData[]> = {
-      electricity: [],
-      water: [],
-      gas: [],
-      internet: [],
-    };
+    if (!yearData.length) return result;
     
     // Group by utility type and month
     const utilityTypes = ['electricity', 'water', 'gas', 'internet'];
@@ -161,7 +155,7 @@ const Analytics = () => {
         };
       });
       
-      result[type] = monthData;
+      result[type as keyof typeof result] = monthData;
     });
     
     return result;
