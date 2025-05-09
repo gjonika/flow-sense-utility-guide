@@ -1,6 +1,7 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   FormField,
   FormItem,
@@ -11,9 +12,10 @@ import {
 
 interface NotesFieldProps {
   form: any;
+  useTextarea?: boolean;
 }
 
-export const NotesField = ({ form }: NotesFieldProps) => {
+export const NotesField = ({ form, useTextarea = false }: NotesFieldProps) => {
   const { t } = useLanguage();
 
   return (
@@ -24,10 +26,18 @@ export const NotesField = ({ form }: NotesFieldProps) => {
         <FormItem>
           <FormLabel>{t('addReading.notes')}</FormLabel>
           <FormControl>
-            <Input
-              placeholder="Any additional notes or comments"
-              {...field}
-            />
+            {useTextarea ? (
+              <Textarea
+                placeholder={t('addReading.notesPlaceholder')}
+                className="min-h-[80px]"
+                {...field}
+              />
+            ) : (
+              <Input
+                placeholder={t('addReading.notesPlaceholder')}
+                {...field}
+              />
+            )}
           </FormControl>
           <FormMessage />
         </FormItem>
