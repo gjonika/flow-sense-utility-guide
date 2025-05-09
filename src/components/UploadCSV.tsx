@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,15 +118,29 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({ onSuccess, onCancel }) => 
       for (let i = 0; i < totalEntries; i += batchSize) {
         const batch = parsedData.slice(i, i + batchSize);
         
-        const entriesToInsert = batch.map(entry => ({
-          readingdate: entry.readingdate,
-          utilitytype: entry.utilitytype,
-          supplier: entry.supplier,
-          reading: entry.reading,
-          unit: entry.unit,
-          amount: entry.amount,
-          notes: entry.notes || null
-        }));
+        // Properly convert and validate data before inserting
+        const entriesToInsert = batch.map(entry => {
+          // Handle reading conversion: string -> number or null if invalid
+          let readingValue: number | null = null;
+          if (entry.reading !== undefined && entry.reading !== '') {
+            if (typeof entry.reading === 'number') {
+              readingValue = entry.reading;
+            } else {
+              const parsed = parseFloat(entry.reading);
+              readingValue = !isNaN(parsed) ? parsed : null;
+            }
+          }
+          
+          return {
+            readingdate: entry.readingdate,
+            utilitytype: entry.utilitytype,
+            supplier: entry.supplier,
+            reading: readingValue,
+            unit: entry.unit || null,
+            amount: entry.amount,
+            notes: entry.notes || null
+          };
+        });
         
         const { error } = await supabase.from('utility_entries').insert(entriesToInsert);
         
