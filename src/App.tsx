@@ -10,6 +10,7 @@ import AddMonthlyReadings from "./pages/AddMonthlyReadings";
 import History from "./pages/History";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import Suppliers from "./pages/Suppliers";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import { LanguageProvider } from "./contexts/LanguageContext";
@@ -42,6 +43,7 @@ const App = () => (
                   <Route path="analytics" element={<Analytics />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="profile" element={<Profile />} />
+                  <Route path="suppliers" element={<Suppliers />} />
                 </Route>
               </Route>
               

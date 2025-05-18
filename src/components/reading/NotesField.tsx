@@ -28,13 +28,13 @@ export const NotesField = ({ form, useTextarea = false }: NotesFieldProps) => {
           <FormControl>
             {useTextarea ? (
               <Textarea
-                placeholder={t('addReading.notesPlaceholder')}
+                placeholder="Add notes about this reading (optional)"
                 className="min-h-[80px]"
                 {...field}
               />
             ) : (
               <Input
-                placeholder={t('addReading.notesPlaceholder')}
+                placeholder="Add notes about this reading (optional)"
                 {...field}
               />
             )}

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -21,29 +22,41 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { File, Upload, Trash2 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, File, Filter, Upload, Trash2 } from "lucide-react";
 import { UploadCSV } from "@/components/UploadCSV";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 type Reading = {
   id: string;
-  readingdate: Date | string;  // Updated to accept both Date and string
+  readingdate: Date | string;
   utilitytype: string;
   supplier: string;
   reading?: string | number;
   unit?: string;
   amount: number;
   notes?: string;
-  created_at: Date | string;  // Also updated for consistency
-  updated_at: Date | string;  // Also updated for consistency
+  created_at: Date | string;
+  updated_at: Date | string;
 };
 
 const History = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [filterSupplier, setFilterSupplier] = useState("all");
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>(undefined);
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>(undefined);
+  const [filterPriceRange, setFilterPriceRange] = useState<{ min: string; max: string }>({ min: "", max: "" });
   const [readings, setReadings] = useState<Reading[]>([]);
+  const [suppliers, setSuppliers] = useState<Set<string>>(new Set());
+  const [types, setTypes] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [filtersPopoverOpen, setFiltersPopoverOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Fetch readings from Supabase
@@ -58,6 +71,18 @@ const History = () => {
       if (error) throw error;
       
       setReadings(data || []);
+      
+      // Extract unique suppliers and types
+      const uniqueSuppliers = new Set<string>();
+      const uniqueTypes = new Set<string>();
+      
+      data?.forEach(entry => {
+        uniqueSuppliers.add(entry.supplier);
+        uniqueTypes.add(entry.utilitytype);
+      });
+      
+      setSuppliers(uniqueSuppliers);
+      setTypes(uniqueTypes);
     } catch (error) {
       console.error('Error fetching readings:', error);
       toast({
@@ -74,17 +99,57 @@ const History = () => {
     fetchReadings();
   }, []);
 
-  // Filter readings based on search term and type filter
+  // Update active filters when filter values change
+  useEffect(() => {
+    const newActiveFilters: string[] = [];
+    
+    if (filterType !== "all") newActiveFilters.push(`Type: ${filterType}`);
+    if (filterSupplier !== "all") newActiveFilters.push(`Supplier: ${filterSupplier}`);
+    if (filterDateFrom) newActiveFilters.push(`From: ${format(filterDateFrom, 'MMM d, yyyy')}`);
+    if (filterDateTo) newActiveFilters.push(`To: ${format(filterDateTo, 'MMM d, yyyy')}`);
+    if (filterPriceRange.min) newActiveFilters.push(`Min: $${filterPriceRange.min}`);
+    if (filterPriceRange.max) newActiveFilters.push(`Max: $${filterPriceRange.max}`);
+    
+    setActiveFilters(newActiveFilters);
+  }, [filterType, filterSupplier, filterDateFrom, filterDateTo, filterPriceRange]);
+
+  // Filter readings based on all filters
   const filteredReadings = readings.filter((reading) => {
+    // Search term filter
     const matchesSearch = 
       (reading.notes?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
       reading.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
       reading.utilitytype.toLowerCase().includes(searchTerm.toLowerCase());
     
+    // Utility type filter
     const matchesType = filterType === "all" || reading.utilitytype.toLowerCase() === filterType.toLowerCase();
     
-    return matchesSearch && matchesType;
+    // Supplier filter
+    const matchesSupplier = filterSupplier === "all" || reading.supplier === filterSupplier;
+    
+    // Date range filter
+    let matchesDateRange = true;
+    const readingDate = new Date(reading.readingdate);
+    if (filterDateFrom) matchesDateRange = matchesDateRange && readingDate >= filterDateFrom;
+    if (filterDateTo) matchesDateRange = matchesDateRange && readingDate <= filterDateTo;
+    
+    // Price range filter
+    let matchesPriceRange = true;
+    if (filterPriceRange.min) matchesPriceRange = matchesPriceRange && reading.amount >= parseFloat(filterPriceRange.min);
+    if (filterPriceRange.max) matchesPriceRange = matchesPriceRange && reading.amount <= parseFloat(filterPriceRange.max);
+    
+    return matchesSearch && matchesType && matchesSupplier && matchesDateRange && matchesPriceRange;
   });
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setFilterType("all");
+    setFilterSupplier("all");
+    setFilterDateFrom(undefined);
+    setFilterDateTo(undefined);
+    setFilterPriceRange({ min: "", max: "" });
+  };
 
   // Handle successful import
   const handleImportSuccess = () => {
@@ -122,6 +187,16 @@ const History = () => {
     }
   };
 
+  // Remove a single filter
+  const removeFilter = (filter: string) => {
+    if (filter.startsWith("Type:")) setFilterType("all");
+    else if (filter.startsWith("Supplier:")) setFilterSupplier("all");
+    else if (filter.startsWith("From:")) setFilterDateFrom(undefined);
+    else if (filter.startsWith("To:")) setFilterDateTo(undefined);
+    else if (filter.startsWith("Min:")) setFilterPriceRange(prev => ({ ...prev, min: "" }));
+    else if (filter.startsWith("Max:")) setFilterPriceRange(prev => ({ ...prev, max: "" }));
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -150,7 +225,7 @@ const History = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Basic Filters */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="w-full md:w-72">
           <Input
@@ -166,23 +241,148 @@ const History = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="electricity">Electricity</SelectItem>
-              <SelectItem value="water">Water</SelectItem>
-              <SelectItem value="gas">Gas</SelectItem>
-              <SelectItem value="internet">Internet</SelectItem>
+              {Array.from(types).sort().map(type => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => {
-            setSearchTerm("");
-            setFilterType("all");
-          }}
-        >
-          Clear Filters
-        </Button>
+        
+        {/* Advanced Filters */}
+        <Popover open={filtersPopoverOpen} onOpenChange={setFiltersPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Advanced Filters
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <div className="space-y-4">
+              <h4 className="font-medium">Advanced Filters</h4>
+              
+              {/* Supplier filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Supplier</label>
+                <Select value={filterSupplier} onValueChange={setFilterSupplier}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select supplier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Suppliers</SelectItem>
+                    {Array.from(suppliers).sort().map(supplier => (
+                      <SelectItem key={supplier} value={supplier}>{supplier}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Date range */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date Range</label>
+                <div className="flex gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDateFrom ? format(filterDateFrom, 'PPP') : 'From date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={filterDateFrom}
+                        onSelect={setFilterDateFrom}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterDateTo ? format(filterDateTo, 'PPP') : 'To date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={filterDateTo}
+                        onSelect={setFilterDateTo}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
+              {/* Price range */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Price Range ($)</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Min"
+                    type="number"
+                    value={filterPriceRange.min}
+                    onChange={(e) => setFilterPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                  />
+                  <span>-</span>
+                  <Input
+                    placeholder="Max"
+                    type="number"
+                    value={filterPriceRange.max}
+                    onChange={(e) => setFilterPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setFiltersPopoverOpen(false)}
+                >
+                  Apply Filters
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+        
+        {activeFilters.length > 0 && (
+          <Button 
+            variant="ghost" 
+            onClick={clearAllFilters}
+            size="sm"
+          >
+            Clear All Filters
+          </Button>
+        )}
       </div>
+
+      {/* Active filters display */}
+      {activeFilters.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {activeFilters.map((filter, index) => (
+            <Badge 
+              key={index} 
+              variant="outline"
+              className="px-2 py-1"
+            >
+              {filter}
+              <button 
+                className="ml-1 hover:text-destructive" 
+                onClick={() => removeFilter(filter)}
+              >
+                ×
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {/* Results */}
       <div className="border rounded-md">
@@ -215,7 +415,7 @@ const History = () => {
               filteredReadings.map((reading) => (
                 <TableRow key={reading.id}>
                   <TableCell>{formatDate(new Date(reading.readingdate))}</TableCell>
-                  <TableCell>{reading.utilitytype}</TableCell>
+                  <TableCell className="capitalize">{reading.utilitytype}</TableCell>
                   <TableCell>{reading.supplier}</TableCell>
                   <TableCell>{reading.reading || '-'}</TableCell>
                   <TableCell>{reading.unit || '-'}</TableCell>
