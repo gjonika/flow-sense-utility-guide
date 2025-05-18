@@ -70,7 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         if (error) throw error;
       } else {
+        // For OAuth providers (google, github)
         const { error } = await supabase.auth.signInWithOAuth({
+          // Convert 'password' to 'email' for OAuth provider
+          // For other providers like 'google' or 'github', use them directly
           provider: provider === 'password' ? 'email' : provider,
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
