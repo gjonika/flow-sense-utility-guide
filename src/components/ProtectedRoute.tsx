@@ -1,11 +1,15 @@
 // src/components/ProtectedRoute.tsx
 import { useLocation, Navigate } from "react-router-dom";
 
-export default function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const location = useLocation();
-  const code = new URLSearchParams(location.search).get("code");
+type ProtectedRouteProps = {
+  children: JSX.Element;
+};
 
-  if (code !== "letmein123") {
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const location = useLocation();
+  const accessCode = new URLSearchParams(location.search).get("code");
+
+  if (accessCode !== "letmein123") {
     return <Navigate to="/unauthorized" replace />;
   }
 

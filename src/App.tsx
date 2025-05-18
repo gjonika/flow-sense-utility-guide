@@ -113,7 +113,23 @@ const App = () => (
                   }
                 />
               </Route>
+              <Route
+                path="/monthly"
+                element={
+                  <ProtectedRoute>
+                    <MonthlyReadingsPage />
+                  </ProtectedRoute>
+                }
+              />
 
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
 
 
               <Route path="*" element={<NotFound />} />
@@ -126,15 +142,10 @@ const App = () => (
 );
 
 export default App;
-console.log("Loaded URL:", window.location.href);
-console.log("Access code is:", accessCode);
-
 if (typeof window !== "undefined") {
   const searchParams = new URLSearchParams(window.location.search);
   const accessCode = searchParams.get("code");
 
-  if (accessCode !== "letmein123") {
-    document.body.innerHTML = "<h1>Unauthorized Access</h1><p>You need a valid code.</p>";
-    throw new Error("Unauthorized");
-  }
+  console.log("Loaded URL:", window.location.href);
+  console.log("Access code is:", accessCode);
 }
