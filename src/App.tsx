@@ -19,9 +19,14 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Profile from "./pages/Profile";
+import './i18n';
+import { useTranslation } from 'react-i18next';
 
 
 const queryClient = new QueryClient();
+const { t } = useTranslation();
+
+<h1>{t("addMonthly.title")}</h1>
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
