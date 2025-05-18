@@ -10,6 +10,7 @@ interface UtilityReading {
   month?: string;
   readingdate?: string;
   amount?: number;
+  supplier?: string;
 }
 
 interface UtilityCardData {
@@ -18,6 +19,8 @@ interface UtilityCardData {
   change: string;
   type: "increase" | "decrease" | "neutral";
   color: string;
+  supplier?: string;
+  amount?: string;
 }
 
 export const useDashboardData = (selectedYear: number) => {
@@ -85,12 +88,12 @@ export const useDashboardData = (selectedYear: number) => {
       const monthEntry: Record<string, any> = { month };
       
       // For each utility type, find readings from that month
-      const utilityTypes = ['electricity', 'water', 'gas', 'internet'];
+      const utilityTypes = ['electricity', 'water', 'gas', 'internet', 'hotWater', 'phone'];
       utilityTypes.forEach(type => {
         const entry = yearData.find(d => {
           if (!d.readingdate) return false;
           const date = new Date(d.readingdate);
-          return d.utilitytype === type && date.toLocaleString('default', { month: 'short' }) === month;
+          return d.utilitytype.toLowerCase() === type.toLowerCase() && date.toLocaleString('default', { month: 'short' }) === month;
         });
         
         monthEntry[type] = entry ? parseFloat(entry.reading) : null;
@@ -101,7 +104,8 @@ export const useDashboardData = (selectedYear: number) => {
     
     // Filter out months with no data
     return monthlyAggregated.filter(m => 
-      m.electricity !== null || m.water !== null || m.gas !== null || m.internet !== null
+      m.electricity !== null || m.water !== null || m.gas !== null || 
+      m.internet !== null || m.hotWater !== null || m.phone !== null
     );
   };
 
@@ -113,9 +117,9 @@ export const useDashboardData = (selectedYear: number) => {
     const yearData = filterDataByYear(data, selectedYear);
     if (!yearData.length) return [];
     
-    const utilityTypes = ['electricity', 'water', 'gas', 'internet'];
+    const utilityTypes = ['electricity', 'water', 'gas', 'internet', 'hotWater', 'phone'];
     const latestByType = utilityTypes.map(type => {
-      const entriesOfType = yearData.filter(d => d.utilitytype === type);
+      const entriesOfType = yearData.filter(d => d.utilitytype.toLowerCase() === type.toLowerCase());
       if (!entriesOfType.length) return null;
       
       // Sort by date descending
@@ -142,12 +146,18 @@ export const useDashboardData = (selectedYear: number) => {
         }
       }
       
+      // Format title to match the screenshot capitalization
+      let title = type.charAt(0).toUpperCase() + type.slice(1);
+      if (title === "HotWater") title = "HotWater";
+      
       return {
-        title: type.charAt(0).toUpperCase() + type.slice(1),
-        value: `${latest.reading} ${latest.unit || ''}`,
+        title,
+        value: latest.reading ? `${latest.reading} ${latest.unit || ''}` : '—',
         change,
         type: changeType,
-        color: `utility-${type}`
+        color: `utility-${type.toLowerCase()}`,
+        supplier: latest.supplier,
+        amount: latest.amount ? `$${parseFloat(latest.amount).toFixed(2)}` : undefined
       } as UtilityCardData;
     }).filter(Boolean) as UtilityCardData[];
     

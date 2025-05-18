@@ -12,10 +12,12 @@ import {
 
 interface ChartData {
   month: string;
-  electricity: number;
-  water: number;
-  gas: number;
-  internet: number;
+  electricity?: number;
+  water?: number;
+  gas?: number;
+  internet?: number;
+  hotWater?: number;
+  phone?: number;
 }
 
 interface UtilityChartProps {
@@ -74,6 +76,24 @@ export function UtilityChart({ data }: UtilityChartProps) {
             stackId="4"
             stroke="#8b5cf6"
             fill="#8b5cf6"
+            fillOpacity={0.6}
+          />
+          <Area
+            type="monotone"
+            dataKey="hotWater"
+            name="HotWater"
+            stackId="5"
+            stroke="#f97316"
+            fill="#f97316"
+            fillOpacity={0.6}
+          />
+          <Area
+            type="monotone"
+            dataKey="phone"
+            name="Phone"
+            stackId="6"
+            stroke="#10b981"
+            fill="#10b981"
             fillOpacity={0.6}
           />
         </AreaChart>

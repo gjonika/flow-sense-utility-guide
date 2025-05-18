@@ -9,9 +9,11 @@ interface UtilityCardProps {
   change: string;
   type: "increase" | "decrease" | "neutral";
   color: string;
+  supplier?: string;
+  amount?: string;
 }
 
-export function UtilityCard({ title, value, change, type, color }: UtilityCardProps) {
+export function UtilityCard({ title, value, change, type, color, supplier, amount }: UtilityCardProps) {
   return (
     <Card className="overflow-hidden">
       <div className={`h-1.5 bg-${color}`} />
@@ -22,6 +24,16 @@ export function UtilityCard({ title, value, change, type, color }: UtilityCardPr
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
+        {supplier && (
+          <div className="text-sm text-muted-foreground mt-1">
+            {supplier}
+          </div>
+        )}
+        {amount && (
+          <div className="text-sm font-medium mt-1">
+            {amount}
+          </div>
+        )}
         <div className="flex items-center mt-1">
           <span 
             className={cn(

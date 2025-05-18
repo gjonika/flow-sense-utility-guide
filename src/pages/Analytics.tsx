@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -34,7 +35,7 @@ import {
 } from "recharts";
 import { useThemeStore, applyThemeColor } from "@/lib/theme";
 import { filterDataByYear, getYearOptions, hasData } from "@/lib/data-utils";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -60,13 +61,18 @@ const Analytics = () => {
     water: UtilityData[];
     gas: UtilityData[];
     internet: UtilityData[];
+    hotWater: UtilityData[];
+    phone: UtilityData[];
   }>({
     electricity: [],
     water: [],
     gas: [],
     internet: [],
+    hotWater: [],
+    phone: [],
   });
   const [utilityBreakdown, setUtilityBreakdown] = useState<UtilityBreakdown[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const { getColor } = useThemeStore();
   const navigate = useNavigate();
@@ -76,13 +82,10 @@ const Analytics = () => {
   useEffect(() => {
     applyThemeColor(getColor('default'));
     fetchReadingsData();
-  }, [getColor]);
-
-  useEffect(() => {
-    processReadingsData();
-  }, [selectedYear]);
+  }, [getColor, selectedYear]);
 
   const fetchReadingsData = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('utility_entries')
@@ -96,10 +99,22 @@ const Analytics = () => {
       
       if (hasEntries) {
         processReadingsData(data);
+      } else {
+        setUtilityData({
+          electricity: [],
+          water: [],
+          gas: [],
+          internet: [],
+          hotWater: [],
+          phone: [],
+        });
+        setUtilityBreakdown([]);
       }
     } catch (error) {
       console.error('Error fetching readings:', error);
       setHasReadings(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -120,12 +135,16 @@ const Analytics = () => {
     water: UtilityData[];
     gas: UtilityData[];
     internet: UtilityData[];
+    hotWater: UtilityData[];
+    phone: UtilityData[];
   } => {
     const result = {
       electricity: [] as UtilityData[],
       water: [] as UtilityData[],
       gas: [] as UtilityData[],
       internet: [] as UtilityData[],
+      hotWater: [] as UtilityData[],
+      phone: [] as UtilityData[],
     };
     
     if (!data || !data.length) return result;
@@ -135,10 +154,10 @@ const Analytics = () => {
     if (!yearData.length) return result;
     
     // Group by utility type and month
-    const utilityTypes = ['electricity', 'water', 'gas', 'internet'];
+    const utilityTypes = ['electricity', 'water', 'gas', 'internet', 'hotWater', 'phone'];
     
     utilityTypes.forEach(type => {
-      const entries = yearData.filter(d => d.utilitytype === type);
+      const entries = yearData.filter(d => d.utilitytype.toLowerCase() === type.toLowerCase());
       if (!entries.length) return;
       
       // Sort by date
@@ -191,7 +210,7 @@ const Analytics = () => {
 
   // Get utility color based on type or theme
   const getUtilityColor = () => {
-    switch (utilityType) {
+    switch (utilityType.toLowerCase()) {
       case "electricity":
         return getColor("electricity") || "#3b82f6";
       case "water":
@@ -200,6 +219,10 @@ const Analytics = () => {
         return getColor("gas") || "#ef4444";
       case "internet":
         return getColor("internet") || "#8b5cf6";
+      case "hotwater":
+        return getColor("hotWater") || "#f97316";
+      case "phone":
+        return getColor("phone") || "#10b981";
       default:
         return getColor("default") || "#3b82f6";
     }
@@ -235,7 +258,13 @@ const Analytics = () => {
         </Select>
       </div>
 
-      {hasReadings && hasCurrentUtilityData ? (
+      {isLoading ? (
+        <Card>
+          <CardContent className="flex justify-center items-center p-12">
+            <p>Loading...</p>
+          </CardContent>
+        </Card>
+      ) : hasReadings && (hasCurrentUtilityData || hasBreakdownData) ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Chart Card */}
           <Card className="lg:col-span-2">
@@ -256,7 +285,7 @@ const Analytics = () => {
                       {Object.keys(utilityData).map(type => (
                         utilityData[type as keyof typeof utilityData].length > 0 && (
                           <SelectItem key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                            {type === 'hotWater' ? 'HotWater' : type.charAt(0).toUpperCase() + type.slice(1)}
                           </SelectItem>
                         )
                       ))}
@@ -272,97 +301,113 @@ const Analytics = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={currentUtilityData}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        return (
-                          <div className="bg-card border p-3 rounded-md shadow-lg">
-                            <p className="font-medium">{data.month}</p>
-                            <p className="text-sm">Reading: {data.reading}</p>
-                            <p className="text-sm">{chartView === "usage" ? `Usage: ${data.usage}` : `Cost: $${data.cost}`}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }} />
-                    <Legend />
-                    <Bar
-                      dataKey={chartView === "usage" ? "usage" : "cost"}
-                      name={chartView === "usage" ? "Usage" : "Cost"}
-                      fill={getUtilityColor()}
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {hasCurrentUtilityData ? (
+                <div className="h-[300px] mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={currentUtilityData}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-card border p-3 rounded-md shadow-lg">
+                              <p className="font-medium">{data.month}</p>
+                              <p className="text-sm">Reading: {data.reading}</p>
+                              <p className="text-sm">{chartView === "usage" ? `Usage: ${data.usage}` : `Cost: $${data.cost}`}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }} />
+                      <Legend />
+                      <Bar
+                        dataKey={chartView === "usage" ? "usage" : "cost"}
+                        name={chartView === "usage" ? "Usage" : "Cost"}
+                        fill={getUtilityColor()}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[300px] mt-4">
+                  <BarChart3 className="h-16 w-16 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No data available for {utilityType} in {selectedYear}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Cost Breakdown Card */}
-          {hasBreakdownData && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Cost Breakdown</CardTitle>
-                <CardDescription>
-                  Total expenditure by utility for {selectedYear}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={utilityBreakdown}
-                      margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        name="Cost ($)"
-                        stroke={getColor("default") || "#10b981"}
-                        activeDot={{ r: 8 }}
-                        strokeWidth={2}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 space-y-3">
-                  <p className="text-sm text-muted-foreground">Total cost by utility:</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {utilityBreakdown.map(item => (
-                      <div key={item.name} className="flex items-center gap-2">
-                        <span 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ 
-                            backgroundColor: getColor(item.name.toLowerCase()) || 
-                              (item.name.toLowerCase() === "electricity" ? "#3b82f6" : 
-                              item.name.toLowerCase() === "water" ? "#0ea5e9" : 
-                              item.name.toLowerCase() === "gas" ? "#ef4444" : "#8b5cf6")
-                          }}
-                        ></span>
-                        <span className="text-sm">{item.name}: ${item.value.toFixed(2)}</span>
-                      </div>
-                    ))}
+          <Card>
+            <CardHeader>
+              <CardTitle>Cost Breakdown</CardTitle>
+              <CardDescription>
+                Total expenditure by utility for {selectedYear}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {hasBreakdownData ? (
+                <>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={utilityBreakdown}
+                        margin={{
+                          top: 5,
+                          right: 30,
+                          left: 20,
+                          bottom: 5,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          name="Cost ($)"
+                          stroke={getColor("default") || "#10b981"}
+                          activeDot={{ r: 8 }}
+                          strokeWidth={2}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
+                  <div className="mt-4 space-y-3">
+                    <p className="text-sm text-muted-foreground">Total cost by utility:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {utilityBreakdown.map(item => (
+                        <div key={item.name} className="flex items-center gap-2">
+                          <span 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ 
+                              backgroundColor: getColor(item.name.toLowerCase()) || 
+                                (item.name.toLowerCase() === "electricity" ? "#3b82f6" : 
+                                item.name.toLowerCase() === "water" ? "#0ea5e9" : 
+                                item.name.toLowerCase() === "gas" ? "#ef4444" : 
+                                item.name.toLowerCase() === "hotwater" ? "#f97316" : 
+                                item.name.toLowerCase() === "phone" ? "#10b981" : "#8b5cf6")
+                            }}
+                          ></span>
+                          <span className="text-sm">{item.name}: ${item.value.toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[300px]">
+                  <BarChart3 className="h-16 w-16 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No cost data available for {selectedYear}</p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </div>
       ) : (
         <Card>
