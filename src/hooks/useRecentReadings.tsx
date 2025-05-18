@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface ReadingEntry {
   id: string;
@@ -9,6 +10,7 @@ export interface ReadingEntry {
   reading: number | null;
   unit: string | null;
   amount: number;
+  user_id: string | null;
 }
 
 interface UseRecentReadingsProps {
@@ -25,8 +27,12 @@ export function useRecentReadings({
   const [readings, setReadings] = useState<ReadingEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
+    // Only fetch data when we have a user
+    if (!user) return;
+    
     const fetchRecentReadings = async () => {
       try {
         setLoading(true);
@@ -34,7 +40,7 @@ export function useRecentReadings({
         
         const { data, error } = await supabase
           .from('utility_entries')
-          .select('id, readingdate, utilitytype, reading, unit, amount')
+          .select('id, readingdate, utilitytype, reading, unit, amount, user_id')
           .order(orderBy, { ascending: orderDirection === 'ascending' })
           .limit(limit);
           
@@ -50,14 +56,16 @@ export function useRecentReadings({
     };
     
     fetchRecentReadings();
-  }, [limit, orderBy, orderDirection]);
+  }, [limit, orderBy, orderDirection, user]);
 
   const refetch = async () => {
+    if (!user) return;
+    
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('utility_entries')
-        .select('id, readingdate, utilitytype, reading, unit, amount')
+        .select('id, readingdate, utilitytype, reading, unit, amount, user_id')
         .order(orderBy, { ascending: orderDirection === 'ascending' })
         .limit(limit);
         

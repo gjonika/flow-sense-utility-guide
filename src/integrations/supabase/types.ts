@@ -41,6 +41,263 @@ export type Database = {
           },
         ]
       }
+      email_metadata: {
+        Row: {
+          created_at: string
+          date: string | null
+          google_message_id: string
+          id: string
+          is_read: boolean | null
+          labels: string[] | null
+          sender_email: string | null
+          sender_name: string | null
+          snippet: string | null
+          subject: string | null
+          thread_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string | null
+          google_message_id: string
+          id?: string
+          is_read?: boolean | null
+          labels?: string[] | null
+          sender_email?: string | null
+          sender_name?: string | null
+          snippet?: string | null
+          subject?: string | null
+          thread_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string | null
+          google_message_id?: string
+          id?: string
+          is_read?: boolean | null
+          labels?: string[] | null
+          sender_email?: string | null
+          sender_name?: string | null
+          snippet?: string | null
+          subject?: string | null
+          thread_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_replies: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_sent: boolean
+          suggested_replies: string[]
+          thread_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_sent?: boolean
+          suggested_replies: string[]
+          thread_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_sent?: boolean
+          suggested_replies?: string[]
+          thread_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_summaries: {
+        Row: {
+          created_at: string
+          id: string
+          key_points: string[]
+          priority: string
+          sentiment: Json
+          suggested_actions: Json
+          thread_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_points: string[]
+          priority: string
+          sentiment: Json
+          suggested_actions: Json
+          thread_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_points?: string[]
+          priority?: string
+          sentiment?: Json
+          suggested_actions?: Json
+          thread_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      gmail_labels: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          label_id: string
+          message_count: number | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          label_id: string
+          message_count?: number | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          label_id?: string
+          message_count?: number | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notion_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+          workspace_name: string | null
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+          workspace_name?: string | null
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string | null
+          workspace_name?: string | null
+        }
+        Relationships: []
+      }
+      portfolio_sections: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          portfolio_id: string
+          sort_order: number
+          title: string
+          type: string
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          portfolio_id: string
+          sort_order?: number
+          title: string
+          type: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          portfolio_id?: string
+          sort_order?: number
+          title?: string
+          type?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_sections_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolios: {
+        Row: {
+          calendly_url: string | null
+          created_at: string
+          id: string
+          name: string
+          social: Json
+          theme: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          calendly_url?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          social?: Json
+          theme?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          calendly_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          social?: Json
+          theme?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       presets: {
         Row: {
           created_at: string
@@ -65,6 +322,217 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          id: string
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          id: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          id?: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          image: string | null
+          link: string | null
+          section_id: string
+          technologies: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          image?: string | null
+          link?: string | null
+          section_id: string
+          technologies?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          image?: string | null
+          link?: string | null
+          section_id?: string
+          technologies?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telegram_connections: {
+        Row: {
+          chat_id: string
+          created_at: string
+          first_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      testimonials: {
+        Row: {
+          avatar: string | null
+          company: string | null
+          created_at: string
+          id: string
+          name: string
+          position: string | null
+          section_id: string
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string | null
+          company?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          position?: string | null
+          section_id: string
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string | null
+          company?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          position?: string | null
+          section_id?: string
+          text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "testimonials_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_sessions: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          google_access_token: string | null
+          google_refresh_token: string | null
+          google_token_expiry: string | null
+          id: string
+          name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          google_access_token?: string | null
+          google_refresh_token?: string | null
+          google_token_expiry?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          google_access_token?: string | null
+          google_refresh_token?: string | null
+          google_token_expiry?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          auto_reply_enabled: boolean
+          created_at: string
+          desktop_notifications_enabled: boolean
+          id: string
+          notion_tasks_enabled: boolean
+          telegram_notifications_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_reply_enabled?: boolean
+          created_at?: string
+          desktop_notifications_enabled?: boolean
+          id?: string
+          notion_tasks_enabled?: boolean
+          telegram_notifications_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_reply_enabled?: boolean
+          created_at?: string
+          desktop_notifications_enabled?: boolean
+          id?: string
+          notion_tasks_enabled?: boolean
+          telegram_notifications_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       utility_entries: {
         Row: {
           amount: number
@@ -78,6 +546,7 @@ export type Database = {
           supplier: string
           unit: string | null
           updated_at: string
+          user_id: string | null
           utilitytype: string
         }
         Insert: {
@@ -92,6 +561,7 @@ export type Database = {
           supplier: string
           unit?: string | null
           updated_at?: string
+          user_id?: string | null
           utilitytype: string
         }
         Update: {
@@ -106,6 +576,7 @@ export type Database = {
           supplier?: string
           unit?: string | null
           updated_at?: string
+          user_id?: string | null
           utilitytype?: string
         }
         Relationships: []

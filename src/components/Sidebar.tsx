@@ -9,9 +9,12 @@ import {
   BarChart3, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut,
+  User
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarProps {
   closeMobileSidebar: () => void;
@@ -19,6 +22,7 @@ interface SidebarProps {
 
 const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
+  const { user, signOut } = useAuth();
   
   // Check if sidebar was collapsed in previous session
   useEffect(() => {
@@ -37,13 +41,22 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
     setCollapsed(!collapsed);
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   const navItems = [
     { title: "Dashboard", path: "/", icon: <Home className="h-5 w-5" /> },
     { title: "Add Reading", path: "/add-reading", icon: <PlusCircle className="h-5 w-5" /> },
     { title: "History", path: "/history", icon: <History className="h-5 w-5" /> },
     { title: "Analytics", path: "/analytics", icon: <BarChart3 className="h-5 w-5" /> },
-    { title: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> }
+    { title: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> },
+    { title: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> }
   ];
+
+  // Get user initials or use fallback
+  const email = user?.email || '';
+  const initials = email ? email.charAt(0).toUpperCase() : 'U';
 
   return (
     <div className={`h-full bg-card border-r flex flex-col relative transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
@@ -97,6 +110,18 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
               </NavLink>
             </li>
           ))}
+          
+          <li className="pt-4">
+            <Button
+              variant="ghost"
+              onClick={handleSignOut}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors text-destructive hover:bg-destructive/10 hover:text-destructive ${collapsed ? 'justify-center' : ''}`}
+              title={collapsed ? "Sign Out" : undefined}
+            >
+              <LogOut className="h-5 w-5" />
+              {!collapsed && <span>Sign Out</span>}
+            </Button>
+          </li>
         </ul>
       </nav>
 
@@ -104,12 +129,12 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
       <div className="p-4 border-t mt-auto">
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-4 py-2'}`}>
           <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold">
-            U
+            {initials}
           </div>
-          {!collapsed && (
-            <div>
-              <p className="text-sm font-medium">User</p>
-              <p className="text-xs text-muted-foreground">user@example.com</p>
+          {!collapsed && user && (
+            <div className="overflow-hidden">
+              <p className="text-sm font-medium truncate">{user.email}</p>
+              <p className="text-xs text-muted-foreground">Logged in</p>
             </div>
           )}
         </div>
