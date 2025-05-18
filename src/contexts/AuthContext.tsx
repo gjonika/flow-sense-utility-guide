@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,7 +63,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         if (error) throw error;
       } else if (provider === 'dev') {
-        // Developer login for testing - uses a test account
+        // For developer testing, we'll use a hardcoded email/password instead
+        // rather than trying to use 'dev' as an OAuth provider
         const { error } = await supabase.auth.signInWithPassword({
           email: 'test@example.com',
           password: 'password123',
