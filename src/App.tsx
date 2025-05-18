@@ -24,7 +24,6 @@ import { useTranslation } from 'react-i18next';
 // main.tsx or App.tsx
 const searchParams = new URLSearchParams(window.location.search);
 const accessCode = searchParams.get("code");
-
 if (accessCode !== "letmein123") {
   document.body.innerHTML = "<h1>Unauthorized Access</h1><p>You need a valid code.</p>";
   throw new Error("Unauthorized");
