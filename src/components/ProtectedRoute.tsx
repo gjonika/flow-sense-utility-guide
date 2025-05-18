@@ -9,9 +9,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const location = useLocation();
   const accessCode = new URLSearchParams(location.search).get("code");
 
-  if (accessCode !== "letmein123") {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  // if (accessCode !== "letmein123") {
+  //  return <Navigate to="/unauthorized" replace />;
+  // }
 
   return children;
 }

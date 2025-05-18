@@ -1,9 +1,9 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Dashboard from "./pages/Dashboard";
 import AddReading from "./pages/AddReading";
 import MonthlyReadingsPage from "./pages/monthly";
@@ -19,22 +19,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Profile from "./pages/Profile";
-import './i18n';
-import { useTranslation } from 'react-i18next';
-// main.tsx or App.tsx
-const searchParams = new URLSearchParams(window.location.search);
-const accessCode = searchParams.get("code");
 
-// if (accessCode !== "letmein123") {
-// document.body.innerHTML = "<h1>Unauthorized Access</h1><p>You need a valid code.</p>";
-// throw new Error("Unauthorized");
-//}
-
+import "./i18n";
 
 const queryClient = new QueryClient();
-const { t } = useTranslation();
-
-<h1>{t("addMonthly.title")}</h1>
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -45,9 +33,11 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Public routes */}
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
 
+              {/* Protected app layout */}
               <Route path="/" element={<Layout />}>
                 <Route
                   index
@@ -114,25 +104,8 @@ const App = () => (
                   }
                 />
               </Route>
-              <Route
-                path="/monthly"
-                element={
-                  <ProtectedRoute>
-                    <MonthlyReadingsPage />
-                  </ProtectedRoute>
-                }
-              />
 
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-
-
+              {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
@@ -143,10 +116,3 @@ const App = () => (
 );
 
 export default App;
-if (typeof window !== "undefined") {
-  const searchParams = new URLSearchParams(window.location.search);
-  const accessCode = searchParams.get("code");
-
-  console.log("Loaded URL:", window.location.href);
-  console.log("Access code is:", accessCode);
-}
