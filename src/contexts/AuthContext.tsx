@@ -1,6 +1,5 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -71,10 +70,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error) throw error;
       } else {
         // For OAuth providers (google, github)
+        const oauthProvider: Provider = provider as Provider;
         const { error } = await supabase.auth.signInWithOAuth({
-          // Convert 'password' to 'email' for OAuth provider
-          // For other providers like 'google' or 'github', use them directly
-          provider: provider === 'password' ? 'email' : provider,
+          provider: oauthProvider,
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
           },
