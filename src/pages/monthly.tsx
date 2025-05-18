@@ -1,4 +1,4 @@
-import { MonthlyReadingsForm } from "../components/MonthlyReadingsForm";
+import { MonthlyReadingsForm } from "../components/reading/MonthlyReadingsForm";
 
 export default function MonthlyReadingsPage() {
   return (
