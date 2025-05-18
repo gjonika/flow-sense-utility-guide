@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signIn: (provider: 'email' | 'google' | 'github' | 'dev', email?: string, password?: string) => Promise<void>;
+  signIn: (provider: 'password' | 'google' | 'github' | 'dev', email?: string, password?: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -54,9 +54,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [toast]);
 
-  const signIn = async (provider: 'email' | 'google' | 'github' | 'dev', email?: string, password?: string) => {
+  const signIn = async (provider: 'password' | 'google' | 'github' | 'dev', email?: string, password?: string) => {
     try {
-      if (provider === 'email' && email && password) {
+      if (provider === 'password' && email && password) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error) throw error;
       } else {
         const { error } = await supabase.auth.signInWithOAuth({
-          provider,
+          provider: provider === 'password' ? 'email' : provider,
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
           },

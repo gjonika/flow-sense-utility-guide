@@ -28,7 +28,7 @@ const Auth = () => {
     setAuthError(null);
     setIsAuthenticating(true);
     try {
-      await signIn('email', email, password);
+      await signIn('password', email, password);
       navigate('/');
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Authentication failed');
