@@ -7,3 +7,8 @@ export default function MonthlyReadingsPage() {
     </div>
   );
 }
+import { UtilityInsights } from "@/components/reading/UtilityInsights";
+
+// ...
+
+<UtilityInsights />

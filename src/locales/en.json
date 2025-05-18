@@ -20,3 +20,17 @@
     "suppliers": "Suppliers"
   }
 }
+
+"insights": {
+  "title": "Utility Usage Insights",
+  "description": "AI-powered suggestions based on your usage",
+  "electricityUp": "Electricity usage is up 12% from last month — consider unplugging idle devices.",
+  "gasHighDays": "Gas usage was high on 3 separate days. Review your heating schedule.",
+  "waterSteady": "Water usage is steady. Good job!",
+  "alert": {
+    "electricityHigh": {
+      "title": "High Electricity Usage",
+      "description": "Your electricity reading exceeded last month’s by 20%. Investigate high-drain devices."
+    }
+  }
+}
