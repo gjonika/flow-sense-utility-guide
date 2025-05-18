@@ -1,7 +1,7 @@
 {
   "addMonthly": {
     "title": "Add Monthly Reading",
-    "description": "Fill in the readings for each utility below.",
+    "description": "Please enter readings for this month.",
     "unit": {
       "kWh": "kWh",
       "m3": "m³"
@@ -9,6 +9,14 @@
   },
   "addReading": {
     "enterReading": "Enter value",
-    "notesPlaceholder": "Add optional notes here..."
+    "notesPlaceholder": "Add any notes here"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "add": "Add Reading",
+    "monthly": "Monthly Readings",
+    "history": "History",
+    "analytics": "Analytics",
+    "suppliers": "Suppliers"
   }
 }
