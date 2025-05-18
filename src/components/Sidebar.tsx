@@ -11,7 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  User
+  User,
+  Building
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,6 +51,7 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
     { title: "Add Reading", path: "/add-reading", icon: <PlusCircle className="h-5 w-5" /> },
     { title: "History", path: "/history", icon: <History className="h-5 w-5" /> },
     { title: "Analytics", path: "/analytics", icon: <BarChart3 className="h-5 w-5" /> },
+    { title: "Suppliers", path: "/suppliers", icon: <Building className="h-5 w-5" /> },
     { title: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> },
     { title: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> }
   ];
