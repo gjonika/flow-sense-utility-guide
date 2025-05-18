@@ -60,6 +60,12 @@ export const HistoryFilters = ({
 }: HistoryFiltersProps) => {
   const [filtersPopoverOpen, setFiltersPopoverOpen] = useState(false);
 
+  // Helper function for updating the price range
+  const handlePriceRangeChange = (field: 'min' | 'max', value: string) => {
+    const updatedRange = { ...filterPriceRange, [field]: value };
+    setFilterPriceRange(updatedRange);
+  };
+
   return (
     <>
       {/* Basic Filters */}
@@ -165,14 +171,14 @@ export const HistoryFilters = ({
                     placeholder="Min"
                     type="number"
                     value={filterPriceRange.min}
-                    onChange={(e) => setFilterPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                    onChange={(e) => handlePriceRangeChange('min', e.target.value)}
                   />
                   <span>-</span>
                   <Input
                     placeholder="Max"
                     type="number"
                     value={filterPriceRange.max}
-                    onChange={(e) => setFilterPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                    onChange={(e) => handlePriceRangeChange('max', e.target.value)}
                   />
                 </div>
               </div>
