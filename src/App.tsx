@@ -15,7 +15,7 @@ import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Profile from "./pages/Profile";
@@ -48,19 +48,74 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
 
-              <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="add-reading" element={<AddReading />} />
-                  <Route path="add-monthly-readings" element={<AddMonthlyReadings />} />
-                  <Route path="history" element={<History />} />
-                  <Route path="analytics" element={<Analytics />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="suppliers" element={<Suppliers />} />
-                  <Route path="/monthly" element={<MonthlyReadingsPage />} />
-
-                </Route>
+              <Route path="/" element={<Layout />}>
+                <Route
+                  index
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="add-reading"
+                  element={
+                    <ProtectedRoute>
+                      <AddReading />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="add-monthly-readings"
+                  element={
+                    <ProtectedRoute>
+                      <AddMonthlyReadings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="monthly"
+                  element={
+                    <ProtectedRoute>
+                      <MonthlyReadingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="history"
+                  element={
+                    <ProtectedRoute>
+                      <History />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="analytics"
+                  element={
+                    <ProtectedRoute>
+                      <Analytics />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="suppliers"
+                  element={
+                    <ProtectedRoute>
+                      <Suppliers />
+                    </ProtectedRoute>
+                  }
+                />
               </Route>
+
+
 
               <Route path="*" element={<NotFound />} />
             </Routes>
