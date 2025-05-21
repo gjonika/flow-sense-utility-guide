@@ -1,14 +1,13 @@
-import { Calendar } from "lucide-react";
-import { CalendarIcon } from "lucide-react";
+
 import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ColorPicker } from "@/components/ColorPicker";
-import {
-  Home,
-  PlusCircle,
-  History,
-  BarChart3,
-  // Settings,
+import { 
+  Home, 
+  PlusCircle, 
+  History, 
+  BarChart3, 
+  Settings,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -25,7 +24,7 @@ interface SidebarProps {
 const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const { user, signOut } = useAuth();
-
+  
   // Check if sidebar was collapsed in previous session
   useEffect(() => {
     const savedCollapsed = localStorage.getItem("sidebar-collapsed");
@@ -48,15 +47,13 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
   };
 
   const navItems = [
-
     { title: "Dashboard", path: "/", icon: <Home className="h-5 w-5" /> },
     { title: "Add Reading", path: "/add-reading", icon: <PlusCircle className="h-5 w-5" /> },
-    { title: "Monthly Readings", path: "/monthly", icon: <Calendar className="h-5 w-5" /> },
     { title: "History", path: "/history", icon: <History className="h-5 w-5" /> },
     { title: "Analytics", path: "/analytics", icon: <BarChart3 className="h-5 w-5" /> },
     { title: "Suppliers", path: "/suppliers", icon: <Building className="h-5 w-5" /> },
-    // { title: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> },
-    // { title: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> }
+    { title: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> },
+    { title: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> }
   ];
 
   // Get user initials or use fallback
@@ -97,13 +94,13 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
         <ul className="space-y-2">
           {navItems.map((item) => (
             <li key={item.path}>
-              <NavLink
-                to={item.path}
+              <NavLink 
+                to={item.path} 
                 onClick={closeMobileSidebar}
-                className={({ isActive }) =>
+                className={({ isActive }) => 
                   `flex items-center gap-3 px-4 py-3 rounded-md transition-colors
-                  ${isActive
-                    ? 'bg-primary text-primary-foreground font-medium'
+                  ${isActive 
+                    ? 'bg-primary text-primary-foreground font-medium' 
                     : 'hover:bg-accent hover:text-accent-foreground'
                   } ${collapsed ? 'justify-center' : ''}`
                 }
@@ -115,7 +112,7 @@ const Sidebar = ({ closeMobileSidebar }: SidebarProps) => {
               </NavLink>
             </li>
           ))}
-
+          
           <li className="pt-4">
             <Button
               variant="ghost"

@@ -57,18 +57,18 @@ export function MonthlyReadingsForm() {
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
-
+    
     try {
       // Filter out empty entries (where cost is empty)
       const validReadings = data.readings.filter(
         (reading) => reading.cost.trim() !== ""
       );
-
+      
       // Prepare data for batch insert
       const readingsToInsert = validReadings.map((reading) => {
         const supplier = suppliersByType[reading.utilityType as keyof typeof suppliersByType]
           .find((s) => s.id === reading.supplier);
-
+        
         return {
           readingdate: data.date.toISOString(),
           utilitytype: reading.utilityType,
@@ -79,7 +79,7 @@ export function MonthlyReadingsForm() {
           notes: reading.notes || null,
         };
       });
-
+      
       // Skip if no valid readings
       if (readingsToInsert.length === 0) {
         toast({
@@ -90,19 +90,19 @@ export function MonthlyReadingsForm() {
         setIsSubmitting(false);
         return;
       }
-
+      
       // Insert into Supabase
       const { error } = await supabase.from('utility_entries').insert(readingsToInsert);
-
+      
       if (error) {
         throw error;
       }
-
+      
       toast({
         title: t('success.readings'),
         description: t('success.readingsDesc'),
       });
-
+      
       // Reset form costs and readings, keep the date
       const currentDate = form.getValues("date");
       form.reset({
@@ -117,10 +117,10 @@ export function MonthlyReadingsForm() {
           }))
         ),
       });
-
+      
       // Refresh last readings
       fetchLastReadings();
-
+      
     } catch (error) {
       console.error('Error saving readings:', error);
       toast({
@@ -156,16 +156,6 @@ export function MonthlyReadingsForm() {
                 />
               ))}
             </Accordion>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {/* your inputs here */}
-
-                <Button type="submit" disabled={isSubmitting}>
-                  {t("addMonthly.submit") || "Submit"}
-                </Button>
-
-              </form>
-            </Form>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? t('addMonthly.submitting') : t('addMonthly.submit')}
