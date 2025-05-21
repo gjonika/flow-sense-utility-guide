@@ -32,7 +32,7 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-              
+
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Dashboard />} />
@@ -44,7 +44,7 @@ const App = () => (
                   <Route path="suppliers" element={<Suppliers />} />
                 </Route>
               </Route>
-              
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
