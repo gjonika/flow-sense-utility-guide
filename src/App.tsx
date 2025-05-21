@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import AddReading from "./pages/AddReading";
-import MonthlyReadingsPage from "./pages/monthly";
 import AddMonthlyReadings from "./pages/AddMonthlyReadings";
 import History from "./pages/History";
 import Analytics from "./pages/Analytics";
@@ -19,14 +18,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Profile from "./pages/Profile";
-import './i18n';
-import { useTranslation } from 'react-i18next';
-
 
 const queryClient = new QueryClient();
-const { t } = useTranslation();
-
-<h1>{t("addMonthly.title")}</h1>
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -39,7 +32,7 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-
+              
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Dashboard />} />
@@ -49,11 +42,9 @@ const App = () => (
                   <Route path="analytics" element={<Analytics />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="suppliers" element={<Suppliers />} />
-                  <Route path="/monthly" element={<MonthlyReadingsPage />} />
-
                 </Route>
               </Route>
-
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
