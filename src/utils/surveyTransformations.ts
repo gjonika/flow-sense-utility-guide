@@ -12,7 +12,7 @@ export const transformSupabaseSurveyToSurvey = (supabaseData: any): Survey => {
     survey_location: supabaseData.survey_location,
     survey_date: supabaseData.survey_date,
     project_scope: supabaseData.project_scope || '',
-    duration: supabaseData.duration || 0, // Keep as number
+    duration: supabaseData.duration || '', // Keep as string
     tools: supabaseData.tools || [],
     custom_fields: (supabaseData.custom_fields as { [key: string]: string }) || {},
     flight_details: (supabaseData.flight_details as FlightDetails) || {},
@@ -34,7 +34,7 @@ export const transformSurveyToSupabaseData = (surveyData: Omit<Survey, 'id' | 'u
     survey_location: surveyData.survey_location,
     survey_date: surveyData.survey_date,
     project_scope: surveyData.project_scope,
-    duration: surveyData.duration, // Keep as number
+    duration: surveyData.duration, // Keep as string
     tools: surveyData.tools,
     custom_fields: surveyData.custom_fields as any,
     flight_details: surveyData.flight_details as any,

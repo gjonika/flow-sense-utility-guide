@@ -30,7 +30,7 @@ export interface Survey {
   survey_location: string;
   survey_date: string;
   project_scope: string;
-  duration: number; // Changed to number to match database
+  duration: string; // Keep as string to match database
   tools: string[];
   custom_fields: { 
     [key: string]: string;
@@ -81,11 +81,12 @@ export interface SurveyNote {
   id: string;
   survey_id: string;
   zone_id: string | null;
-  note_text: string; // Changed from note_content to match database
+  note_text: string; // Use note_text to match database
   note_type?: string;
   created_at: string;
   updated_at: string;
-  // Removed last_synced_at and needs_sync as they don't exist in database
+  last_synced_at?: string;
+  needs_sync?: boolean;
 }
 
 export interface SurveyMedia {
@@ -95,7 +96,10 @@ export interface SurveyMedia {
   file_name: string;
   file_type: string;
   file_size?: number;
-  file_path: string; // Changed from storage_path to match database
+  storage_path: string; // Use storage_path to match database
+  thumbnail_path?: string;
+  local_file_data?: string; // Add this for offline storage
   created_at: string;
-  // Removed fields that don't exist in database schema
+  last_synced_at?: string;
+  needs_sync?: boolean;
 }

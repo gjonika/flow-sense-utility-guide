@@ -81,8 +81,12 @@ export const useMediaSync = () => {
         file_name: item.file_name,
         file_type: item.file_type,
         file_size: item.file_size,
-        file_path: item.file_path,
-        created_at: item.created_at
+        storage_path: item.storage_path, // Use storage_path from database
+        thumbnail_path: item.thumbnail_path,
+        local_file_data: item.local_file_data,
+        created_at: item.created_at,
+        last_synced_at: item.last_synced_at,
+        needs_sync: item.needs_sync
       }));
     } catch (error) {
       console.error('Failed to get media for survey:', error);
