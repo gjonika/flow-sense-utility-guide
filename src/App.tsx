@@ -43,6 +43,10 @@ const router = createBrowserRouter([
     element: <Analytics />,
   },
   {
+    path: "/ai-assistant",
+    element: <AIAssistant />,
+  },
+  {
     path: "/how-to-use",
     element: <HowToUse />,
   },
