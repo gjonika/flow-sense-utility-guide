@@ -1,57 +1,84 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import AddReading from "./pages/AddReading";
-import AddMonthlyReadings from "./pages/AddMonthlyReadings";
-import History from "./pages/History";
-import Analytics from "./pages/Analytics";
-import Suppliers from "./pages/Suppliers";
-import Layout from "./components/Layout";
-import NotFound from "./pages/NotFound";
-import { LanguageProvider } from "./contexts/LanguageContext";
-import { AuthProvider } from "./contexts/AuthContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback";
-import Profile from "./pages/Profile";
+import React from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Index from '@/pages/Index';
+import NewSurvey from '@/pages/NewSurvey';
+import SurveyDetails from '@/pages/SurveyDetails';
+import DevPanel from '@/pages/DevPanel';
+import DevDiagnosticsPanel from '@/pages/DevDiagnosticsPanel';
+import Dashboard from '@/pages/Dashboard';
+import SurveyProjects from '@/pages/SurveyProjects';
+import Analytics from '@/pages/Analytics';
+import AIAssistant from '@/pages/AIAssistant';
+import HowToUse from '@/pages/HowToUse';
+import { Toaster } from '@/components/ui/toaster';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { AuthProvider } from '@/contexts/AuthContext';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <LanguageProvider>
-        <TooltipProvider>
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Index />,
+  },
+  {
+    path: "/projects",
+    element: <SurveyProjects />,
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />,
+  },
+  {
+    path: "/analytics",
+    element: <Analytics />,
+  },
+  {
+    path: "/how-to-use",
+    element: <HowToUse />,
+  },
+  {
+    path: "/new-survey",
+    element: <NewSurvey />,
+  },
+  {
+    path: "/survey/:id",
+    element: <SurveyDetails />,
+  },
+  {
+    path: "/survey/:id/edit",
+    element: <NewSurvey />,
+  },
+  {
+    path: "/dev-panel",
+    element: <DevPanel />,
+  },
+  {
+    path: "/dev",
+    element: <DevDiagnosticsPanel />,
+  },
+]);
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <RouterProvider router={router} />
           <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              
-              <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="add-reading" element={<AddReading />} />
-                  <Route path="add-monthly-readings" element={<AddMonthlyReadings />} />
-                  <Route path="history" element={<History />} />
-                  <Route path="analytics" element={<Analytics />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="suppliers" element={<Suppliers />} />
-                </Route>
-              </Route>
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </LanguageProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
 
 export default App;
