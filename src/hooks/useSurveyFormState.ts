@@ -10,7 +10,7 @@ interface FormData {
   survey_location: string;
   survey_date: string;
   project_scope: string;
-  duration: string; // Keep as string to match Survey type
+  duration: string;
   tools: string[];
   custom_fields: { [key: string]: string };
   flight_details: FlightDetails;
@@ -37,7 +37,7 @@ export const useSurveyFormState = ({ survey }: UseSurveyFormStateProps) => {
     survey_location: survey?.survey_location || '',
     survey_date: survey?.survey_date || '',
     project_scope: survey?.project_scope || '',
-    duration: survey?.duration || '', // Keep as string
+    duration: survey?.duration || '',
     tools: survey?.tools || [],
     custom_fields: survey?.custom_fields || {},
     flight_details: survey?.flight_details || {},

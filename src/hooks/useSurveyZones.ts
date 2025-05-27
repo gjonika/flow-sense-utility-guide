@@ -52,19 +52,7 @@ export const useSurveyZones = (surveyId: string) => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      
-      // Transform data to match SurveyNote type
-      const transformedNotes: SurveyNote[] = (data || []).map(note => ({
-        id: note.id,
-        survey_id: note.survey_id,
-        zone_id: note.zone_id,
-        note_text: note.note_text,
-        note_type: note.note_type,
-        created_at: note.created_at,
-        updated_at: note.updated_at
-      }));
-      
-      setNotes(transformedNotes);
+      setNotes(data || []);
     } catch (error) {
       console.error('Error fetching notes:', error);
     } finally {
@@ -123,31 +111,20 @@ export const useSurveyZones = (surveyId: string) => {
         .insert([{
           survey_id: surveyId,
           zone_id: zoneId,
-          note_text: noteContent, // Use note_text instead of note_content
+          note_content: noteContent,
         }])
         .select()
         .single();
 
       if (error) throw error;
       
-      // Transform to match SurveyNote type
-      const transformedNote: SurveyNote = {
-        id: data.id,
-        survey_id: data.survey_id,
-        zone_id: data.zone_id,
-        note_text: data.note_text,
-        note_type: data.note_type,
-        created_at: data.created_at,
-        updated_at: data.updated_at
-      };
-      
-      setNotes(prev => [...prev, transformedNote]);
+      setNotes(prev => [...prev, data]);
       toast({
         title: "Success",
         description: "Note added successfully",
       });
       
-      return transformedNote;
+      return data;
     } catch (error) {
       console.error('Error creating note:', error);
       toast({

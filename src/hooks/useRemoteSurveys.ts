@@ -51,7 +51,7 @@ export const useRemoteSurveys = (isOnline: boolean) => {
     } else {
       const { data, error } = await supabase
         .from('surveys')
-        .insert(supabaseData)
+        .insert([supabaseData])
         .select()
         .single();
       

@@ -182,9 +182,9 @@ const MediaGallery = ({ media, zones, onDelete, onUpdate }: MediaGalleryProps) =
                         <div className="flex items-center gap-3 flex-1">
                           {/* Thumbnail or Icon */}
                           <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                            {mediaItem.file_type?.startsWith('image/') && mediaItem.local_file_data ? (
+                            {mediaItem.file_type?.startsWith('image/') && (mediaItem.file_data || mediaItem.local_file_data) ? (
                               <img
-                                src={mediaItem.local_file_data}
+                                src={mediaItem.file_data || mediaItem.local_file_data}
                                 alt={mediaItem.file_name}
                                 className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => handleMediaClick(mediaItem)}

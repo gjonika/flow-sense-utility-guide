@@ -19,8 +19,7 @@ const MediaViewer = ({ media, isOpen, onClose, onDelete }: MediaViewerProps) => 
 
   const isImage = media.file_type?.startsWith('image/');
   const isVideo = media.file_type?.startsWith('video/');
-  // Use local_file_data if available, otherwise fall back to storage_path
-  const mediaData = media.local_file_data || media.storage_path;
+  const mediaData = media.file_data || media.local_file_data;
 
   const handleDownload = () => {
     if (mediaData) {

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -279,7 +280,7 @@ const ZoneNotesSection = ({ surveyId }: ZoneNotesSectionProps) => {
                   <div className="space-y-3">
                     {zoneNotes.map((note) => (
                       <div key={note.id} className="bg-gray-50 p-3 rounded border-l-4 border-blue-500">
-                        <p className="text-gray-800">{note.note_text}</p>
+                        <p className="text-gray-800">{note.note_content}</p>
                         <div className="flex items-center justify-between mt-2">
                           <p className="text-xs text-gray-500">
                             {new Date(note.created_at).toLocaleString()}
