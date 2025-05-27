@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useSurveys } from '@/hooks/useSurveys';
 import { useNavigate } from 'react-router-dom';
@@ -23,7 +22,7 @@ const SurveyProjects = () => {
   const [sortBy, setSortBy] = useState('date-desc');
 
   // Set page title
-  usePageTitle({ pageType: 'projects' });
+  usePageTitle({ title: 'Survey Projects' });
 
   // Filter and sort surveys
   const filteredAndSortedSurveys = useMemo(() => {

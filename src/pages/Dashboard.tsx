@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ const Dashboard = () => {
   const [showSettings, setShowSettings] = useState(false);
 
   // Set page title
-  usePageTitle({ pageType: 'dashboard' });
+  usePageTitle({ title: 'Dashboard' });
 
   // Initialize sort preference - default to nearest date first
   const [sortBy, setSortBy] = useState<SortOption>(() => {

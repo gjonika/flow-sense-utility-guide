@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SurveyForm from '@/components/SurveyForm';
@@ -19,9 +18,7 @@ const NewSurvey = () => {
 
   // Set dynamic page title
   usePageTitle({ 
-    survey: surveyToEdit,
-    pageType: surveyToEdit ? undefined : 'survey-form',
-    customTitle: surveyToEdit ? undefined : 'New Survey Project'
+    title: surveyToEdit ? `Edit ${surveyToEdit.ship_name}` : 'New Survey Project'
   });
 
   if (loading && id) {

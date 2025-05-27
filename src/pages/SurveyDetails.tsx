@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSurveys } from '@/hooks/useSurveys';
@@ -14,7 +13,9 @@ const SurveyDetails = () => {
   const survey = surveys.find(s => s.id === id);
 
   // Set dynamic page title based on survey
-  usePageTitle({ survey });
+  usePageTitle({ 
+    title: survey ? `${survey.ship_name} - ${survey.client_name}` : 'Survey Details'
+  });
 
   if (loading) {
     return <DashboardLoadingState />;
