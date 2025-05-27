@@ -41,6 +41,82 @@ export type Database = {
           },
         ]
       }
+      assessment_items: {
+        Row: {
+          category: string
+          condition_rating: string | null
+          created_at: string
+          dimensions: Json | null
+          estimated_cost: number | null
+          id: string
+          item_name: string
+          item_type: string | null
+          notes: string | null
+          priority_level: string | null
+          quantity: number | null
+          subcategory: string | null
+          survey_id: string
+          updated_at: string
+          zone_id: string | null
+        }
+        Insert: {
+          category: string
+          condition_rating?: string | null
+          created_at?: string
+          dimensions?: Json | null
+          estimated_cost?: number | null
+          id?: string
+          item_name: string
+          item_type?: string | null
+          notes?: string | null
+          priority_level?: string | null
+          quantity?: number | null
+          subcategory?: string | null
+          survey_id: string
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Update: {
+          category?: string
+          condition_rating?: string | null
+          created_at?: string
+          dimensions?: Json | null
+          estimated_cost?: number | null
+          id?: string
+          item_name?: string
+          item_type?: string | null
+          notes?: string | null
+          priority_level?: string | null
+          quantity?: number | null
+          subcategory?: string | null
+          survey_id?: string
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_items_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "assessment_items_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_items_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "survey_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories_utilities: {
         Row: {
           color: string
@@ -61,6 +137,85 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      checklist_responses: {
+        Row: {
+          asset_tag: string | null
+          created_at: string
+          id: string
+          is_mandatory: boolean | null
+          needs_sync: boolean | null
+          notes: string | null
+          qr_code: string | null
+          question_category: string
+          question_id: string
+          question_text: string
+          response_type: string
+          rfid_tag: string | null
+          survey_id: string
+          template_id: string | null
+          updated_at: string
+          zone_id: string | null
+        }
+        Insert: {
+          asset_tag?: string | null
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean | null
+          needs_sync?: boolean | null
+          notes?: string | null
+          qr_code?: string | null
+          question_category: string
+          question_id: string
+          question_text: string
+          response_type?: string
+          rfid_tag?: string | null
+          survey_id: string
+          template_id?: string | null
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Update: {
+          asset_tag?: string | null
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean | null
+          needs_sync?: boolean | null
+          notes?: string | null
+          qr_code?: string | null
+          question_category?: string
+          question_id?: string
+          question_text?: string
+          response_type?: string
+          rfid_tag?: string | null
+          survey_id?: string
+          template_id?: string | null
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_responses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "checklist_responses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_responses_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "survey_zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dashboard_projects: {
         Row: {
@@ -610,6 +765,266 @@ export type Database = {
           },
         ]
       }
+      survey_media: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          survey_id: string
+          zone_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          survey_id: string
+          zone_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          survey_id?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_media_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "survey_media_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_media_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "survey_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_notes: {
+        Row: {
+          created_at: string
+          id: string
+          note_text: string
+          note_type: string | null
+          survey_id: string
+          updated_at: string
+          zone_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note_text: string
+          note_type?: string | null
+          survey_id: string
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note_text?: string
+          note_type?: string | null
+          survey_id?: string
+          updated_at?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_notes_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "survey_notes_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_notes_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "survey_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_templates: {
+        Row: {
+          category: string
+          compliance_standards: string[] | null
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          questions: Json
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          compliance_standards?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          questions?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          compliance_standards?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          questions?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      survey_zones: {
+        Row: {
+          created_at: string
+          id: string
+          survey_id: string
+          updated_at: string
+          zone_description: string | null
+          zone_metadata: Json | null
+          zone_name: string
+          zone_subtype: string | null
+          zone_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          survey_id: string
+          updated_at?: string
+          zone_description?: string | null
+          zone_metadata?: Json | null
+          zone_name: string
+          zone_subtype?: string | null
+          zone_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          survey_id?: string
+          updated_at?: string
+          zone_description?: string | null
+          zone_metadata?: Json | null
+          zone_name?: string
+          zone_subtype?: string | null
+          zone_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_zones_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "survey_zones_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surveys: {
+        Row: {
+          client_contacts: Json | null
+          client_country: string | null
+          client_name: string
+          created_at: string
+          custom_fields: Json | null
+          duration: number | null
+          flight_details: Json | null
+          hotel_details: Json | null
+          id: string
+          last_synced_at: string | null
+          needs_sync: boolean | null
+          project_scope: string | null
+          ship_name: string
+          status: string
+          survey_date: string
+          survey_location: string
+          tools: string[] | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          client_contacts?: Json | null
+          client_country?: string | null
+          client_name: string
+          created_at?: string
+          custom_fields?: Json | null
+          duration?: number | null
+          flight_details?: Json | null
+          hotel_details?: Json | null
+          id?: string
+          last_synced_at?: string | null
+          needs_sync?: boolean | null
+          project_scope?: string | null
+          ship_name: string
+          status?: string
+          survey_date: string
+          survey_location: string
+          tools?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          client_contacts?: Json | null
+          client_country?: string | null
+          client_name?: string
+          created_at?: string
+          custom_fields?: Json | null
+          duration?: number | null
+          flight_details?: Json | null
+          hotel_details?: Json | null
+          id?: string
+          last_synced_at?: string | null
+          needs_sync?: boolean | null
+          project_scope?: string | null
+          ship_name?: string
+          status?: string
+          survey_date?: string
+          survey_location?: string
+          tools?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       telegram_connections: {
         Row: {
           chat_id: string
@@ -845,7 +1260,44 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      survey_analytics: {
+        Row: {
+          compliant_items: number | null
+          issues_found: number | null
+          mandatory_skipped: number | null
+          not_applicable: number | null
+          ship_name: string | null
+          status: string | null
+          survey_id: string | null
+          survey_location: string | null
+          total_evidence_files: number | null
+          total_responses: number | null
+        }
+        Relationships: []
+      }
+      survey_issues_by_category: {
+        Row: {
+          issue_count: number | null
+          question_category: string | null
+          survey_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_responses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "checklist_responses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
