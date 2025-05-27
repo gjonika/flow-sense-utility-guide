@@ -20,8 +20,12 @@ export class ChecklistResponseService {
     const now = new Date().toISOString();
 
     try {
+      // Map response types to match database expectations
+      const dbResponseType = responseType === 'yes' ? 'compliant' : 
+                           responseType === 'no' ? 'non_compliant' : 'na';
+
       const { data, error } = await supabase
-        .from('survey_checklist_responses')
+        .from('checklist_responses') // Use correct table name
         .insert([{
           id: responseId,
           survey_id: surveyId,
@@ -29,7 +33,7 @@ export class ChecklistResponseService {
           question_id: questionId,
           question_category: questionCategory,
           question_text: questionText,
-          response_type: responseType,
+          response_type: dbResponseType,
           is_mandatory: isMandatory,
           notes: notes || '',
           asset_tag: assetTag || '',
@@ -54,7 +58,7 @@ export class ChecklistResponseService {
   async getResponsesForSurvey(surveyId: string): Promise<ChecklistResponse[]> {
     try {
       const { data, error } = await supabase
-        .from('survey_checklist_responses')
+        .from('checklist_responses') // Use correct table name
         .select('*')
         .eq('survey_id', surveyId);
 
@@ -62,7 +66,8 @@ export class ChecklistResponseService {
 
       return (data || []).map(response => ({
         ...response,
-        response_type: response.response_type as 'yes' | 'no' | 'na' | 'skipped',
+        response_type: response.response_type === 'compliant' ? 'yes' as const :
+                      response.response_type === 'non_compliant' ? 'no' as const : 'na' as const,
         needs_sync: false
       }));
     } catch (error) {

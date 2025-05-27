@@ -66,7 +66,24 @@ export const useMediaSync = () => {
   // Get media for a survey
   const getOfflineMediaForSurvey = useCallback(async (surveyId: string): Promise<SurveyMedia[]> => {
     try {
-      return await mediaStorageService.getMediaForSurvey(surveyId);
+      const { data, error } = await supabase
+        .from('survey_media')
+        .select('*')
+        .eq('survey_id', surveyId);
+
+      if (error) throw error;
+
+      // Transform database data to match SurveyMedia type
+      return (data || []).map(item => ({
+        id: item.id,
+        survey_id: item.survey_id,
+        zone_id: item.zone_id,
+        file_name: item.file_name,
+        file_type: item.file_type,
+        file_size: item.file_size,
+        file_path: item.file_path,
+        created_at: item.created_at
+      }));
     } catch (error) {
       console.error('Failed to get media for survey:', error);
       return [];

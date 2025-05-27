@@ -66,7 +66,13 @@ export const getAllSurveys = async (): Promise<Survey[]> => {
       flight_details: parseCustomFields(survey.flight_details),
       hotel_details: parseCustomFields(survey.hotel_details),
       tools: parseTools(survey.tools),
-      status: survey.status as Survey['status']
+      status: survey.status as Survey['status'],
+      user_id: survey.user_id || null, // Handle null user_id
+      client_country: survey.client_country || '',
+      project_scope: survey.project_scope || '',
+      duration: survey.duration || 0, // Keep as number
+      last_synced_at: survey.last_synced_at || null,
+      needs_sync: survey.needs_sync || false
     }));
 
     console.log(`[syncService] Loaded ${typedSurveys.length} surveys from online storage`);
