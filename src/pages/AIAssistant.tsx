@@ -1,14 +1,11 @@
 
 import React from 'react';
-import { MainHeader } from '@/components/MainHeader';
+import MainHeader from '@/components/MainHeader';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 const AIAssistant = () => {
   // Fix the usePageTitle call to match the expected interface
-  usePageTitle({ 
-    title: "AI Assistant",
-    description: "Get AI-powered assistance for your maritime surveys" 
-  });
+  usePageTitle("AI Assistant");
 
   return (
     <div className="min-h-screen bg-gray-50">
