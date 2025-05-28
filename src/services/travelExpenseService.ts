@@ -41,10 +41,7 @@ class TravelExpenseService {
       throw error;
     }
 
-    return (data || []).map(expense => ({
-      ...expense,
-      expense_type: expense.expense_type as TravelExpense['expense_type']
-    }));
+    return (data || []) as TravelExpense[];
   }
 
   async createTravelExpense(expenseData: CreateTravelExpenseData): Promise<TravelExpense> {
@@ -59,10 +56,7 @@ class TravelExpenseService {
       throw error;
     }
 
-    return {
-      ...data,
-      expense_type: data.expense_type as TravelExpense['expense_type']
-    };
+    return data as TravelExpense;
   }
 
   async updateTravelExpense(id: string, updates: Partial<CreateTravelExpenseData>): Promise<TravelExpense> {
@@ -78,10 +72,7 @@ class TravelExpenseService {
       throw error;
     }
 
-    return {
-      ...data,
-      expense_type: data.expense_type as TravelExpense['expense_type']
-    };
+    return data as TravelExpense;
   }
 
   async deleteTravelExpense(id: string): Promise<void> {
