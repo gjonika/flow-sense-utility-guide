@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import PriorityReviewContent from './assessment/PriorityReviewContent';
 import TravelSection from './TravelSection';
 import ZoneNotesSection from './ZoneNotesSection';
 import EnhancedMediaSection from './EnhancedMediaSection';
+import EstimatorSummaryContent from './assessment/EstimatorSummaryContent';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SurveyDetailsTabsProps {
@@ -105,12 +105,13 @@ const SurveyDetailsTabs = ({
     { value: "travel", label: isMobile ? "Trip" : "Travel" },
     { value: "notes", label: "Notes" },
     { value: "media", label: "Media" },
+    { value: "summary", label: "Summary" },
   ];
 
   return (
     <Tabs defaultValue="overview" className="w-full">
       <div className="overflow-x-auto scrollbar-hide">
-        <TabsList className={`grid w-full grid-cols-7 ${isMobile ? 'h-9 text-xs' : 'h-10'} mb-1`}>
+        <TabsList className={`grid w-full grid-cols-8 ${isMobile ? 'h-9 text-xs' : 'h-10'} mb-1`}>
           {tabItems.map((item) => (
             <TabsTrigger 
               key={item.value} 
@@ -199,6 +200,10 @@ const SurveyDetailsTabs = ({
           surveyId={survey.id} 
           zones={zones}
         />
+      </TabsContent>
+
+      <TabsContent value="summary" className="mt-3 sm:mt-6">
+        <EstimatorSummaryContent surveyId={survey.id} zones={zones} />
       </TabsContent>
     </Tabs>
   );
