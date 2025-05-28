@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 import { AssessmentItem } from '@/types/assessment';
 import { SurveyZone } from '@/types/survey';
@@ -29,8 +28,8 @@ export class EstimatorExportService {
       item.status !== 'pending' || 
       item.notes || 
       item.dimensions || 
-      item.quantity > 0 || 
-      item.area > 0
+      (item.quantity && item.quantity > 0) || 
+      (item.dimensions?.area && item.dimensions.area > 0)
     );
 
     if (filledItems.length === 0) {
@@ -78,18 +77,32 @@ export class EstimatorExportService {
         grouped[zoneId][item.category] = [];
       }
 
+      // Helper function to format dimensions
+      const formatDimensions = (dimensions: any): string => {
+        if (!dimensions) return '';
+        if (typeof dimensions === 'string') return dimensions;
+        if (typeof dimensions === 'object') {
+          const parts = [];
+          if (dimensions.width) parts.push(`W:${dimensions.width}cm`);
+          if (dimensions.height) parts.push(`H:${dimensions.height}cm`);
+          if (dimensions.length) parts.push(`L:${dimensions.length}cm`);
+          return parts.join(' × ');
+        }
+        return '';
+      };
+
       const exportItem: ExportData = {
         zone: zoneName,
         category: this.formatCategory(item.category),
-        description: item.description || '',
-        dimensions: item.dimensions || '',
-        quantity: item.quantity?.toString() || '',
-        area: item.area?.toString() || '',
-        material: item.material || '',
+        description: item.question || item.description || '',
+        dimensions: formatDimensions(item.dimensions),
+        quantity: item.quantity?.toString() || item.quantities?.unitCount?.toString() || '',
+        area: item.dimensions?.area?.toString() || item.quantities?.surfaceArea?.toString() || '',
+        material: item.plannedMaterial || '',
         status: this.formatStatus(item.status),
-        priority: item.priority || '',
+        priority: item.isPriority ? 'High' : 'Normal',
         comments: item.notes || '',
-        estimatedCost: item.estimatedCost?.toString() || '',
+        estimatedCost: item.estimatedHours?.toString() || '',
         earlyProcurement: item.markForEarlyProcurement ? 'Yes' : 'No'
       };
 
@@ -124,7 +137,7 @@ export class EstimatorExportService {
       'Status',
       'Priority',
       'Comments',
-      'Estimated Cost',
+      'Estimated Hours',
       'Early Procurement'
     ];
     worksheetData.push(headers);
@@ -170,7 +183,7 @@ export class EstimatorExportService {
       { width: 12 }, // Status
       { width: 12 }, // Priority
       { width: 40 }, // Comments
-      { width: 15 }, // Estimated Cost
+      { width: 15 }, // Estimated Hours
       { width: 15 }  // Early Procurement
     ];
 
