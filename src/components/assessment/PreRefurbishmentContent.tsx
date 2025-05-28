@@ -5,12 +5,14 @@ import { ACCORDION_SECTIONS } from '@/constants/accordionSections';
 import AssessmentSummary from './AssessmentSummary';
 import AccordionAssessmentSection from './AccordionAssessmentSection';
 import PreRefurbishmentControls from './PreRefurbishmentControls';
+import PreRefurbishmentHeader from './PreRefurbishmentHeader';
 import { useAssessmentItems } from '@/hooks/useAssessmentItems';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, Plus, MapPin } from 'lucide-react';
 import EnhancedNoteManager from '../EnhancedNoteManager';
+import { EstimatorExportService } from '@/services/estimatorExportService';
 
 interface PreRefurbishmentContentProps {
   checklist: AssessmentItem[];
@@ -62,6 +64,7 @@ const PreRefurbishmentContent = ({
   const [localExpandedCategories, setLocalExpandedCategories] = useState<string[]>(expandedCategories);
   const [selectedZoneId, setSelectedZoneId] = useState<string>('');
   const [showZoneCreation, setShowZoneCreation] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
 
   const handleCategoryToggle = (category: string) => {
     setLocalExpandedCategories(prev => 
@@ -127,6 +130,27 @@ const PreRefurbishmentContent = ({
     }
   };
 
+  const handleExcelExport = async () => {
+    try {
+      setIsExportingExcel(true);
+      
+      // Get project title from survey or use default
+      const projectTitle = `Survey_${surveyId.slice(0, 8)}`;
+      
+      // Combine all assessment items
+      const allItems = [...checklist, ...assessmentItems];
+      
+      // Export to Excel
+      EstimatorExportService.exportToExcel(allItems, zones, projectTitle);
+      
+    } catch (error) {
+      console.error('Failed to export Excel file:', error);
+      alert('Failed to export Excel file. Please try again.');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   const getZoneName = (zoneId: string) => {
     const zone = zones.find(z => z.id === zoneId);
     if (!zone) return 'Unknown Zone';
@@ -187,6 +211,14 @@ const PreRefurbishmentContent = ({
 
   return (
     <div className="space-y-6">
+      {/* Export Header */}
+      <PreRefurbishmentHeader 
+        isExporting={false}
+        onExportPDF={() => {}}
+        onExportExcel={handleExcelExport}
+        isExportingExcel={isExportingExcel}
+      />
+
       {/* Zone Selection Section */}
       <Card className="border-l-4 border-l-blue-500">
         <CardHeader className="pb-3">
