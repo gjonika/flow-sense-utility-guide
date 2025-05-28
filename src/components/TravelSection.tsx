@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plane, Hotel, Plus, X, Bell } from 'lucide-react';
 import { Survey } from '@/types/survey';
 import { StoredSurvey } from '@/types/storage';
+import TravelExpenseManager from './TravelExpenseManager';
 
 interface TravelSectionProps {
   survey: Survey | StoredSurvey;
@@ -282,6 +284,12 @@ const TravelSection = ({ survey, onUpdate }: TravelSectionProps) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Travel Expenses Manager */}
+      <TravelExpenseManager 
+        surveyId={survey.id} 
+        surveyors={surveyors.length > 0 ? surveyors : travelers.map(t => t.surveyor).filter(Boolean)}
+      />
     </div>
   );
 };

@@ -1266,6 +1266,66 @@ export type Database = {
         }
         Relationships: []
       }
+      travel_expenses: {
+        Row: {
+          cost: number
+          created_at: string
+          currency: string
+          description: string | null
+          end_date: string | null
+          expense_date: string
+          expense_type: string
+          id: string
+          start_date: string | null
+          survey_id: string
+          surveyor_name: string
+          updated_at: string
+        }
+        Insert: {
+          cost: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          end_date?: string | null
+          expense_date: string
+          expense_type: string
+          id?: string
+          start_date?: string | null
+          survey_id: string
+          surveyor_name: string
+          updated_at?: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          end_date?: string | null
+          expense_date?: string
+          expense_type?: string
+          id?: string
+          start_date?: string | null
+          survey_id?: string
+          surveyor_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_expenses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "travel_expenses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upload_logs: {
         Row: {
           created_at: string
